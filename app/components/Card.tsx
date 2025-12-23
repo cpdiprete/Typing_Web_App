@@ -7,6 +7,7 @@ type CardProps = {
     text: string,
     title: string
     id?: number
+    backToMain:(id:number | null) => void;
 }
 type CharProps = {
     character: string,
@@ -19,11 +20,11 @@ type State = {
     correctDict: Record<number, number>
     numWrong: number
     numRight: number
-    startTime: number
     textLength: number
     status: string
+    startTime: number
+    endTime: number
 }
-
 export function Individual_Character({character, correct, seen}: CharProps) {
     let set_color = "grey"
     let bg_color = null
@@ -48,7 +49,6 @@ export function Individual_Character({character, correct, seen}: CharProps) {
         )
     }
 }
-
 function reducer(state: State, action: { type: string; key?: string }) {
     switch (action.type) {
         case "BACKSPACE":
@@ -57,11 +57,9 @@ function reducer(state: State, action: { type: string; key?: string }) {
                 curChar: Math.max(0, state.curChar - 1),
                 lastWrong: false,
             };
-
         case "CORRECT":
-            // console.log("Num righr: ", state.numRight)
-            // console.log("cur Char: ", state.curChar)
-            return {
+            // if (state.curChar === 0) { // IF this is the first key pressed we'd like to add a
+            let new_state = {
                 ...state,
                 curChar: state.curChar + 1,
                 lastWrong: false,
@@ -70,37 +68,70 @@ function reducer(state: State, action: { type: string; key?: string }) {
                     [state.curChar]: 1,
                 },
                 numRight: state.numRight + 1
-            };
-
+            }
+            if (state.curChar === 0) {
+                new_state = {
+                    ...new_state,
+                    startTime: Date.now()
+                }
+            }
+            return new_state;
         case "WRONG":
+            let wrong_state = state
             if (!state.lastWrong) { // this is the first wrong
-                return {
+                wrong_state = {
                     ...state,
                     curChar: state.curChar + 1,
                     lastWrong: true,
                     numWrong: state.numWrong + 1
                 };
             } else {
-                return {
+                wrong_state = {
                     ...state,
                     lastWrong: true
                 };
             }
+            if (state.curChar === 0) {
+                wrong_state = {
+                    ...wrong_state,
+                    startTime: Date.now()
+                }
+            }
+            return wrong_state
         case "DONE":
             console.log("DONE")
             return {
                 ...state,
-                status: "FINISHED"
+                status: "FINISHED", // This is what triggers the end title card screen
+                endTime: Date.now()
             }
-            // Now I want to call the end screen with the spot
-
-
+        case "RESTART":
+            return {
+                ...state,
+                curChar: 0,
+                lastWrong: false,
+                correctDict: {},
+                numRight: 0,
+                numWrong: 0,
+                startTime: Date.now(),
+                status: "Typing",
+                endTime: Date.now()
+            }
         default:
         return state;
     }
 }
-
-export function Card({text, title, id}: CardProps) {
+function get_wpm(state: State) {
+    let seconds = (state.endTime - state.startTime) / 1000
+    let mins = seconds / 60
+    let wpm = (state.textLength / 5) / mins // The div by 5-characters comes from arbitrary wpm standard calculations
+    return wpm.toFixed(1)
+}
+function get_accuracy(state: State) {
+    let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(1)
+    return accuracy_percentage
+}
+export function Card({text, title, id, backToMain}: CardProps) {
     const [state, dispatch] = useReducer(reducer, {
         curChar: 0,
         lastWrong: false,
@@ -109,9 +140,9 @@ export function Card({text, title, id}: CardProps) {
         numWrong: 0,
         startTime: Date.now(),
         textLength: text.length,
-        status: "Typing"
+        status: "Typing",
+        endTime: Date.now()
     });
-
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Shift") {
@@ -125,45 +156,51 @@ export function Card({text, title, id}: CardProps) {
                 } else {
                     dispatch({ type: "CORRECT" });
                 }
-            } else {
+            } 
+            else {
                 dispatch({ type: "WRONG" });
             }
         };
-        // console.log("EFFECT RAN");
         document.addEventListener("keydown", handler);
         return () => document.removeEventListener("keydown", handler); // Cleanup to remove old handler before the next one comes
     }, [state.curChar]);
 
     if (state.status === "FINISHED") {
-            let accuracy_percentage = 100 * (state.numRight - state.numWrong) / state.numRight
-            console.log("Accuracy:", (accuracy_percentage).toFixed(1), "%")
-            let seconds = (Date.now() - state.startTime) / 1000
-            let mins = seconds / 60
-            console.log("Elapsed seconds: ", seconds.toFixed())
-            let wpm = (state.textLength / 5) / mins
-            console.log("WPM: ", wpm.toFixed(2))
+        let wpm = get_wpm(state)
+        let accuracy_percentage = get_accuracy(state)
         return  (
-            <div>
+            <div className={styles.finish_display_stats_card}>
                 <p>DONE WITH TYPING TEST!!</p>
-                <p>WPM: {wpm.toFixed(0)}</p>
-                <p>Accuracy: {(accuracy_percentage).toFixed(1)}</p>
+                <p>WPM: {wpm}</p>
+                <p>Accuracy: {accuracy_percentage}%</p>
+                <button className={styles.retry_button} 
+                    onClick={() => {console.log("button pressed!!!!")
+                        dispatch({ type: "RESTART" });
+                    }}>
+                Retry Lesson
+                </button> 
+                <div>
+                </div>
+                <button className={styles.retry_button}
+                onClick={() => {
+                    backToMain(null)
+                }}>
+                    Back to Main Menu
+                </button>
             </div>
         )
     } else {
-    return (
-        // state.status === "FINISHED" 
-        <div className={styles.card_text}>
-        {text.split("").map((ch, index) => (
-            <Individual_Character
-                key={index}
-                character={ch}
-                seen={index < state.curChar}
-                correct={index in state.correctDict}
-            />
-        ))}
-        </div>
-    );
+        return (
+            <div className={styles.card_text}>
+            {text.split("").map((ch, index) => (
+                <Individual_Character
+                    key={index}
+                    character={ch}
+                    seen={index < state.curChar}
+                    correct={index in state.correctDict}
+                />
+            ))}
+            </div>
+        );
     }
 }
-
-

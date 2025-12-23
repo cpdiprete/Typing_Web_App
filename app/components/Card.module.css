@@ -6,3 +6,18 @@
     font-size: large;
     font-weight: bold;
 }
+.finish_display_stats_card{
+    /* align-items: center;
+    justify-content: center; */
+    margin:auto;
+    width: 50%;
+    height: 100%;
+    text-align: center;
+    padding:24px;
+    background-color: lightblue;
+    font-size: xx-large;
+    font-weight: bolder;
+}
+.retry_button{
+    background-color: blue;
+}

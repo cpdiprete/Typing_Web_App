@@ -1,0 +1,21 @@
+.lesson_list{
+    background-color: lightblue;
+    display: flex;
+    margin:auto;
+    padding:10px;
+    width: 50%;
+    flex-direction: column;     /* stack vertically */
+    gap: 12px;                  /* no quotes */
+    font-size: xx-large;
+    font-weight: bolder;
+}
+.lesson_card{
+    gap: 12px;
+    background-color:lightcyan;
+
+}
+.main_screen{
+    padding:10px;
+    background-color: lightpink;
+    height: 100vh;
+}
