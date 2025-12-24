@@ -73,6 +73,7 @@ const lesson1text = "Lorem Ipsum only five centuries"
 const lesson2text = "Calvins Lesson 2 text"
 const lesson3text = "Lorem Ipsum has been the industry's"
 const lesson4text = "standard dummy text ever since the 1500s"
+const lesson5text = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
 
 type LessonsDict = {
   [key: number]: [title: string, text: string]
@@ -83,6 +84,7 @@ const lessonsDict: LessonsDict = {
   1: ["lesson 2", lesson2text],
   2: ["lesson 3", lesson3text],
   3: ["lesson 4", lesson4text],
+  4: ["lesson 5", lesson5text]
 
 }
 // const hardcoded = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"

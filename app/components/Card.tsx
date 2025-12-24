@@ -169,6 +169,7 @@ export function Card({text, title, id, backToMain}: CardProps) {
         let wpm = get_wpm(state)
         let accuracy_percentage = get_accuracy(state)
         return  (
+        <div className={styles.typing_screen}>
             <div className={styles.finish_display_stats_card}>
                 <p>DONE WITH TYPING TEST!!</p>
                 <p>WPM: {wpm}</p>
@@ -188,19 +189,22 @@ export function Card({text, title, id, backToMain}: CardProps) {
                     Back to Main Menu
                 </button>
             </div>
+        </div>
         )
     } else {
         return (
-            <div className={styles.card_text}>
-            {text.split("").map((ch, index) => (
-                <Individual_Character
-                    key={index}
-                    character={ch}
-                    seen={index < state.curChar}
-                    correct={index in state.correctDict}
-                />
-            ))}
-            </div>
+            
+                <div className={styles.card_text}>
+                {text.split("").map((ch, index) => (
+                    <Individual_Character
+                        key={index}
+                        character={ch}
+                        seen={index < state.curChar}
+                        correct={index in state.correctDict}
+                    />
+                ))}
+                </div>
+            
         );
     }
 }

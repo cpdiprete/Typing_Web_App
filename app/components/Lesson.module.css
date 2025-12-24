@@ -12,6 +12,7 @@
 .lesson_card{
     gap: 12px;
     background-color:lightcyan;
+    color: grey
 
 }
 .main_screen{
