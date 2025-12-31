@@ -1,7 +1,7 @@
 "use client";
 import styles from "./Card.module.css";
 import { useState, useEffect, useReducer } from 'react'
-// import styles from "./Card.module.css";
+import useSound from "use-sound"
 let finished = false
 type CardProps = {
     text: string,
@@ -121,6 +121,13 @@ function reducer(state: State, action: { type: string; key?: string }) {
         return state;
     }
 }
+function saveStatsInDatabase(){
+    // let current_total_chars = get_total_typed_chars()
+    // let current_correct_chars = get_total_wrong_chars()
+    // let current_wrong_chars = get_total_wrong_chars()
+    // let current_total_elapsed_times = get_total_elapsed_time()
+    
+}
 function get_wpm(state: State) {
     let seconds = (state.endTime - state.startTime) / 1000
     let mins = seconds / 60
@@ -132,6 +139,17 @@ function get_accuracy(state: State) {
     return accuracy_percentage
 }
 export function Card({text, title, id, backToMain}: CardProps) {
+    const [audioUnlocked, setAudioUnlocked] = useState(false);
+    const [soundCorrect] = useSound('/sounds/keyboard.wav', {
+        volume:.50,
+        sprite: {
+            click: [800, 900]
+        }
+    })
+    const [soundWrong] = useSound('/sounds/wrong.wav', {
+        volume:.50,
+    })
+
     const [state, dispatch] = useReducer(reducer, {
         curChar: 0,
         lastWrong: false,
@@ -144,6 +162,10 @@ export function Card({text, title, id, backToMain}: CardProps) {
         endTime: Date.now()
     });
     useEffect(() => {
+        console.log("Ran a useeEffect!")
+        setAudioUnlocked(true);
+    }, [])
+    useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Shift") {
                 return; // Don't need to do anything
@@ -154,10 +176,12 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 if (state.curChar >= (text.length - 1)) { // No more chars to type
                     dispatch({ type: "DONE" });
                 } else {
+                    soundCorrect({id: 'click'});
                     dispatch({ type: "CORRECT" });
                 }
             } 
             else {
+                soundWrong()
                 dispatch({ type: "WRONG" });
             }
         };
@@ -174,6 +198,7 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 <p>DONE WITH TYPING TEST!!</p>
                 <p>WPM: {wpm}</p>
                 <p>Accuracy: {accuracy_percentage}%</p>
+                {/* {saveStatsInDatabase} */}
                 <button className={styles.retry_button} 
                     onClick={() => {console.log("button pressed!!!!")
                         dispatch({ type: "RESTART" });
@@ -193,7 +218,6 @@ export function Card({text, title, id, backToMain}: CardProps) {
         )
     } else {
         return (
-            
                 <div className={styles.card_text}>
                 {text.split("").map((ch, index) => (
                     <Individual_Character

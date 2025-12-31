@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import rawText from "./Text_Samples/left_hand.tsx"
 
 // export default function Home() {
 //   return (

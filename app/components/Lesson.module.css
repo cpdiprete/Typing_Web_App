@@ -17,6 +17,7 @@
 }
 .main_screen{
     padding:10px;
-    background-color: lightpink;
+    /* background-color: lightpink; */
+    background-color: grey;
     height: 100vh;
 }
