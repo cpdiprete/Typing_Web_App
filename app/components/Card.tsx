@@ -17,7 +17,7 @@ type CharProps = {
 type State = {
     curChar: number,
     lastWrong: boolean,
-    correctDict: Record<number, number>
+    correctDict: Record<number | any, number | any>
     numWrong: number
     numRight: number
     textLength: number
@@ -52,8 +52,12 @@ export function Individual_Character({character, correct, seen}: CharProps) {
 function reducer(state: State, action: { type: string; key?: string }) {
     switch (action.type) {
         case "BACKSPACE":
+            delete state.correctDict[state.curChar - 1] // Clear the previous correct status from dictionary
             return {
                 ...state,
+                correctDict: {
+                    ...state.correctDict
+                },
                 curChar: Math.max(0, state.curChar - 1),
                 lastWrong: false,
             };

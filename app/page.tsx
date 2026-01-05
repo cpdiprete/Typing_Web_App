@@ -69,6 +69,7 @@ import { useState, useEffect } from 'react'
 import { Card } from "./components/Card";
 // import { Lesson } from "./components/Lesson";
 import styles from "./components/Lesson.module.css";
+import { stringify } from "querystring";
 
 const lesson1text = "Lorem Ipsum only five centuries"
 const lesson2text = "Calvins Lesson 2 text"
@@ -89,8 +90,53 @@ const lessonsDict: LessonsDict = {
 
 }
 // const hardcoded = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
+export function testServerConnection(updaterFunction) {
+  // const endpoint = "http://127.0.0.1:5000";
+  const endpoint = "http://127.0.0.1:5000/get_stats";
+  fetch(endpoint).then(response => {
+    if (!response.ok) {
+      throw new Error(
+        `Http error!!!`
+      );
+    }
+    console.log("Response is actually fine!!!!")
+    return response.json()
+  }).then(data => {
+      console.log("checking data?")
+      console.log(data)
+      updaterFunction(JSON.stringify(data))
+  })
+}
+
+export async function testPostMethods(minutes: number) {
+  // const endpoint = "http://127.0.0.1:5000";
+  const endpoint = `http://127.0.0.1:5000/post_minutes/${minutes}`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+  })
+  if (!response.ok) {
+    throw new Error("Request failed");
+  }
+  const data = await response.json();
+  console.log(data);
+
+  // fetch(endpoint).then(response => {
+  //   if (!response.ok) {
+  //     throw new Error(
+  //       `Http error!!!`
+  //     );
+  //   }
+  //   console.log("Response is actually fine!!!!")
+  //   return response.json()
+  // }).then(data => {
+  //     console.log("checking data?")
+  //     console.log(data)
+  //     updaterFunction(JSON.stringify(data))
+  // })
+}
 
 export default function Root()  {
+  const [serverText, setServerText] = useState<string>()
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   if (activeLessonId !== null) {
     // const dictEntry = lessonsDict.find()
@@ -118,6 +164,21 @@ export default function Root()  {
               </button>
             ))}
         </main>
+        <button
+          onClick={() => {
+              setServerText(testServerConnection(setServerText))
+          }}>
+            Test the GET Methods
+            {'\n' + serverText}
+        </button>
+        
+        <button
+        onClick={() => {
+            testPostMethods(100)
+        }}
+        >
+          Test Post Methods
+        </button>
       </div>
     );
   }
