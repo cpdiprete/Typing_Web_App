@@ -25,6 +25,49 @@ type State = {
     startTime: number
     endTime: number
 }
+// export async function updateTotalSeconds(seconds: number) {
+//   // const endpoint = "http://127.0.0.1:5000";
+//     const endpoint = `http://127.0.0.1:5000/post_seconds/${seconds}`;
+//     const response = await fetch(endpoint, {
+//         method: "POST",
+//     })
+//     if (!response.ok) {
+//         throw new Error("Request failed");
+//     }
+//     const data = await response.json();
+//     console.log(data);
+// }
+export async function updateTotalChars(card_id:number, correct_chars: number, incorrect_chars: number) {
+  // const endpoint = "http://127.0.0.1:5000";
+    const endpoint = `http://127.0.0.1:5000/total_words/${card_id}/${correct_chars}/${incorrect_chars}`;
+    const response = await fetch(endpoint, {
+        method: "POST",
+    })
+    if (!response.ok) {
+        throw new Error("Request failed");
+    }
+    console.log("Updated total accuracy")
+    // const data = await response.json();
+    // console.log(data);
+}
+
+// updateTotalStats
+
+
+export async function getTotalAccuracy(card_id) {
+    console.log("trying to check total accuracy")
+    const endpoint = `http://127.0.0.1:5000/get_accuracy/${card_id}`;
+    console.log("fetching from endpoint", endpoint)
+    const response = await fetch(endpoint)
+    if (!response.ok) {
+        console.log("Issue, response = ",  response)
+        throw new Error(`Http error!!!, `);
+    }
+    const data = await response.json();
+    console.log(data.accuracy)
+    return data.accuracy;
+    // let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(1)
+}
 export function Individual_Character({character, correct, seen}: CharProps) {
     let set_color = "grey"
     let bg_color = null
@@ -104,6 +147,9 @@ function reducer(state: State, action: { type: string; key?: string }) {
             return wrong_state
         case "DONE":
             console.log("DONE")
+                updateTotalChars(0, state.numRight, state.numWrong)
+                getTotalAccuracy(0) // hardcoded card_id as 0
+                // setAllTimeAccuracy(300)
             return {
                 ...state,
                 status: "FINISHED", // This is what triggers the end title card screen
@@ -144,6 +190,8 @@ function get_accuracy(state: State) {
 }
 export function Card({text, title, id, backToMain}: CardProps) {
     const [audioUnlocked, setAudioUnlocked] = useState(false);
+    const [allTimeWpm, setAllTimeWpm] = useState<number>(9999999)
+    const [allTimeAccuracy, setAllTimeAccuracy] = useState<number>(9999999)
     const [soundCorrect] = useSound('/sounds/keyboard.wav', {
         volume:.50,
         sprite: {
@@ -193,9 +241,26 @@ export function Card({text, title, id, backToMain}: CardProps) {
         return () => document.removeEventListener("keydown", handler); // Cleanup to remove old handler before the next one comes
     }, [state.curChar]);
 
+    useEffect(() => {
+        if (state.status !== "FINISHED") {
+            return;
+        }
+        if (id === null) {
+            return
+        }
+        // getTotalAccuracy(0).then(acc=> setAllTimeAccuracy(acc))
+        getTotalAccuracy(0).then(acc=> setAllTimeAccuracy(acc)) // hardcoded id as 0!!!!!!!!
+        .catch((err)=> console.error(err))
+    }, [state.status, id])
+
+
     if (state.status === "FINISHED") {
         let wpm = get_wpm(state)
         let accuracy_percentage = get_accuracy(state)
+        // let allTimeAccuracy = getTotalAccuracy(id)
+        // setAllTimeAccuracy(getTotalAccuracy(id))
+        // updateTotalChars(id, state.numRight, state.numWrong)
+        // setAllTimeAccuracy(getTotalAccuracy())
         return  (
         <div className={styles.typing_screen}>
             <div className={styles.finish_display_stats_card}>
@@ -217,6 +282,12 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 }}>
                     Back to Main Menu
                 </button>
+                <div>
+                    --All time stats--
+                    <p>All Time Accuracy: {100* allTimeAccuracy} %</p>
+                    {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
+                    <p>WPM: {allTimeWpm}</p>
+                </div>
             </div>
         </div>
         )
