@@ -25,21 +25,10 @@ type State = {
     startTime: number
     endTime: number
 }
-// export async function updateTotalSeconds(seconds: number) {
-//   // const endpoint = "http://127.0.0.1:5000";
-//     const endpoint = `http://127.0.0.1:5000/post_seconds/${seconds}`;
-//     const response = await fetch(endpoint, {
-//         method: "POST",
-//     })
-//     if (!response.ok) {
-//         throw new Error("Request failed");
-//     }
-//     const data = await response.json();
-//     console.log(data);
-// }
-export async function updateTotalChars(card_id:number, correct_chars: number, incorrect_chars: number) {
+export async function updateTotalStats(card_id:number, correct_chars: number, incorrect_chars: number, seconds:number) {
   // const endpoint = "http://127.0.0.1:5000";
-    const endpoint = `http://127.0.0.1:5000/total_words/${card_id}/${correct_chars}/${incorrect_chars}`;
+    const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${seconds}`;
+    // const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${100}`;
     const response = await fetch(endpoint, {
         method: "POST",
     })
@@ -50,9 +39,6 @@ export async function updateTotalChars(card_id:number, correct_chars: number, in
     // const data = await response.json();
     // console.log(data);
 }
-
-// updateTotalStats
-
 
 export async function getTotalAccuracy(card_id) {
     console.log("trying to check total accuracy")
@@ -68,6 +54,19 @@ export async function getTotalAccuracy(card_id) {
     return data.accuracy;
     // let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(1)
 }
+
+export async function getTotalWpm(card_id) {
+    const endpoint = `http://127.0.0.1:5000/get_wpm/${card_id}`;
+    const response = await fetch(endpoint)
+    if (!response.ok) {
+        console.log("Issue, response = ",  response)
+        throw new Error(`Http error!!!, `);
+    }
+    const data = await response.json();
+    console.log(data)
+    return data.wpm.toFixed(2)
+}
+
 export function Individual_Character({character, correct, seen}: CharProps) {
     let set_color = "grey"
     let bg_color = null
@@ -147,9 +146,6 @@ function reducer(state: State, action: { type: string; key?: string }) {
             return wrong_state
         case "DONE":
             console.log("DONE")
-                updateTotalChars(0, state.numRight, state.numWrong)
-                getTotalAccuracy(0) // hardcoded card_id as 0
-                // setAllTimeAccuracy(300)
             return {
                 ...state,
                 status: "FINISHED", // This is what triggers the end title card screen
@@ -171,13 +167,7 @@ function reducer(state: State, action: { type: string; key?: string }) {
         return state;
     }
 }
-function saveStatsInDatabase(){
-    // let current_total_chars = get_total_typed_chars()
-    // let current_correct_chars = get_total_wrong_chars()
-    // let current_wrong_chars = get_total_wrong_chars()
-    // let current_total_elapsed_times = get_total_elapsed_time()
-    
-}
+
 function get_wpm(state: State) {
     let seconds = (state.endTime - state.startTime) / 1000
     let mins = seconds / 60
@@ -248,7 +238,9 @@ export function Card({text, title, id, backToMain}: CardProps) {
         if (id === null) {
             return
         }
-        // getTotalAccuracy(0).then(acc=> setAllTimeAccuracy(acc))
+        updateTotalStats(0, state.numRight, state.numWrong, (state.endTime - state.startTime))
+        getTotalAccuracy(0) // hardcoded card_id as 0
+        getTotalWpm(0).then(wppm=> setAllTimeWpm(wppm))
         getTotalAccuracy(0).then(acc=> setAllTimeAccuracy(acc)) // hardcoded id as 0!!!!!!!!
         .catch((err)=> console.error(err))
     }, [state.status, id])
@@ -257,10 +249,6 @@ export function Card({text, title, id, backToMain}: CardProps) {
     if (state.status === "FINISHED") {
         let wpm = get_wpm(state)
         let accuracy_percentage = get_accuracy(state)
-        // let allTimeAccuracy = getTotalAccuracy(id)
-        // setAllTimeAccuracy(getTotalAccuracy(id))
-        // updateTotalChars(id, state.numRight, state.numWrong)
-        // setAllTimeAccuracy(getTotalAccuracy())
         return  (
         <div className={styles.typing_screen}>
             <div className={styles.finish_display_stats_card}>
@@ -282,8 +270,8 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 }}>
                     Back to Main Menu
                 </button>
-                <div>
-                    --All time stats--
+                <div className={styles.all_time_stats_card}>
+                    ----------All time stats----------
                     <p>All Time Accuracy: {100* allTimeAccuracy} %</p>
                     {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
                     <p>WPM: {allTimeWpm}</p>

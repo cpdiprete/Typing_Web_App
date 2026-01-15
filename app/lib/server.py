@@ -16,25 +16,11 @@ def drop_database():
     print("Dropping the database")
     db.clear_db()
     return jsonify({"message": "Hello from the backend!"})
-
-@app.route('/get_stats', methods=['GET'])
-def get_stats():
-    # db.retrieve_stats(0)
+@app.route('/init_db')
+def init_db():
     db.init_db()
-    db.view_whole_db()
-    return jsonify({"message": "Hello from getStatsss!"})
+    return jsonify({"message": "Hello from the backend!"})
 
-@app.route('/post_minutes/<int:minutes>', methods=['POST', 'GET'])
-def post_stats(seconds, words):
-    print("seconds recieved: " + str(seconds))
-    db.init_db()
-    db.add_lesson(0, "TEST Lessonn!")
-    # db.store_stats(0, 14)
-    return jsonify({
-        "status": "ok",
-        "minutes": seconds
-    })
-# `http://127.0.0.1:5000/total_words/${correct_chars}/${incorrect_chars}`;
 @app.route('/get_accuracy/<int:card_id>')
 def get_accuracy(card_id):
     blah = db.get_total_accuracy(card_id)
@@ -44,15 +30,38 @@ def get_accuracy(card_id):
     "status": "ok",
     "accuracy": blah
     })
-
-@app.route('/total_words/<int:card_id>/<int:correct>/<int:incorrect>', methods=['POST'])
-def update_correct_and_incorrect(card_id, correct, incorrect):
-    print("CAlled function to update total accurcayyyyyyyy")
+@app.route('/get_wpm/<int:card_id>')
+def get_wpm(card_id):
+    blah = db.get_total_wpm(card_id)
+    print(f"Server tried to get card wpm for id={card_id}.. output={blah}")
+    # return blah
+    return jsonify({
+        "status": "ok",
+        "wpm": blah
+    })
+@app.route('/total_stats/<int:card_id>/<int:correct>/<int:incorrect>/<int:seconds>', methods=['POST'])
+def update_total_stats(card_id, correct, incorrect, seconds):
+    print("CAlled function to update total stats")
     print(f"card_id={card_id} | correct_count={correct} | incorrect={incorrect}")
-    db.update_correct_and_incorrect_chars(card_id, correct, incorrect)
+    db.update_chars_and_seconds(card_id, correct, incorrect, seconds)
     return jsonify({
         "status": "ok"
     })
     
+@app.route('/get_entries_dict')
+def get_entries_dict():
+    entries_dict = db.retrieve_all_db_entries()
+    return jsonify({
+        "status": "ok",
+        "entries_dict": entries_dict
+    })
+@app.route('/add_lesson/<string:title>/<string:text>', methods=['POST'])
+def add_lesson(title, text):
+    print(f"Add lesson was called with title:{title} | text={text}")
+    db.add_lesson(title, text) ## need to 
+    return jsonify({
+        "status": "ok"
+    })
+
 # if __name__ == "__main__":
 #     app.run(port=5000)

@@ -21,3 +21,6 @@
     background-color: grey;
     height: 100vh;
 }
+.create_lesson_button{
+    background-color: orange;
+}
