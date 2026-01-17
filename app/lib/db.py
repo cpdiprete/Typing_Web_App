@@ -124,6 +124,9 @@ def get_total_accuracy(card_id):
     # print("Wrong count fetched: " + str(wrong_count))
     right_count = outputs[0]
     wrong_count = outputs[1]
+    
+    if (right_count == 0):
+        return 0
     accuracy = round((right_count - wrong_count) / right_count, 2)
     
     print("Wrong count fetched: " + str(wrong_count))
@@ -141,10 +144,13 @@ def get_total_wpm(card_id):
         cursor = typing_db.cursor()
         cursor.execute(query, (card_id,))
         result = cursor.fetchone()
+        
         correct, wrong, milliseconds = result
         wpm = (correct + wrong) / 5
         seconds = milliseconds / 1000
         mins = seconds / 60
+        if (mins == 0):
+            return wpm
         wpm = wpm / mins
         return wpm
 def get_next_valid_card_id():
@@ -172,10 +178,10 @@ def testing_refresh_db():
     clear_db() 
     init_db()
 def testing_lesson_additions():
-    add_lesson(100, "Calvins test", "This is calvin testing his shit")
-    add_lesson(100, "other one", "This is one more test for me to do")
-    add_lesson(200, "nother", "bullshlsh fjj ")
-    add_lesson(300, "one another", "budfddf")
+    add_lesson("Calvins test", "This is calvin testing his shit")
+    add_lesson("other one", "This is one more test for me to do")
+    add_lesson("nother", "bullshlsh fjj ")
+    add_lesson("one another", "budfddf")
     # add_lesson(4, "one another", "budfddf")
     update_chars_and_seconds(0, 20, 10, 1000)
     update_chars_and_seconds(1, 10, 15, 10000)
@@ -186,7 +192,7 @@ def test_incrementing_lesson():
     
 
 if __name__ == "__main__":
-    # testing_refresh_db()
+    testing_refresh_db()
     view_whole_db()
     # testing_lesson_additions()
     # print(retrieve_all_db_entries())

@@ -64,7 +64,7 @@ export async function getTotalWpm(card_id) {
     }
     const data = await response.json();
     console.log(data)
-    return data.wpm.toFixed(2)
+    return data.wpm.toFixed(1)
 }
 
 export function Individual_Character({character, correct, seen}: CharProps) {
@@ -171,11 +171,11 @@ function reducer(state: State, action: { type: string; key?: string }) {
 function get_wpm(state: State) {
     let seconds = (state.endTime - state.startTime) / 1000
     let mins = seconds / 60
-    let wpm = (state.textLength / 5) / mins // The div by 5-characters comes from arbitrary wpm standard calculations
+    let wpm = ((state.numRight + state.numWrong) / 5) / mins // The div by 5-characters comes from arbitrary wpm standard calculations
     return wpm.toFixed(1)
 }
 function get_accuracy(state: State) {
-    let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(1)
+    let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(0)
     return accuracy_percentage
 }
 export function Card({text, title, id, backToMain}: CardProps) {
@@ -235,14 +235,15 @@ export function Card({text, title, id, backToMain}: CardProps) {
         if (state.status !== "FINISHED") {
             return;
         }
-        if (id === null) {
+        if ((id === null) || (id === undefined)) {
             return
         }
-        updateTotalStats(0, state.numRight, state.numWrong, (state.endTime - state.startTime))
-        getTotalAccuracy(0) // hardcoded card_id as 0
-        getTotalWpm(0).then(wppm=> setAllTimeWpm(wppm))
-        getTotalAccuracy(0).then(acc=> setAllTimeAccuracy(acc)) // hardcoded id as 0!!!!!!!!
-        .catch((err)=> console.error(err))
+        // getTotalAccuracy(id) // hardcoded card_id as 0
+        updateTotalStats(id, state.numRight, state.numWrong, (state.endTime - state.startTime)).then(() => {
+            getTotalWpm(id).then(wppm=> setAllTimeWpm(wppm))
+            getTotalAccuracy(id).then(acc=> setAllTimeAccuracy(acc))
+            .catch((err)=> console.error(err))
+        })
     }, [state.status, id])
 
 
@@ -272,9 +273,9 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 </button>
                 <div className={styles.all_time_stats_card}>
                     ----------All time stats----------
-                    <p>All Time Accuracy: {100* allTimeAccuracy} %</p>
-                    {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
                     <p>WPM: {allTimeWpm}</p>
+                    <p>Accuracy: {100* allTimeAccuracy} %</p>
+                    {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
                 </div>
             </div>
         </div>

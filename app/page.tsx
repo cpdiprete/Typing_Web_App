@@ -32,7 +32,8 @@ type LessonsDict = {
 // const hardcoded = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
 
 export function drop_database() {
-  const endpoint = "http://127.0.0.1:5000/dropdb";
+  // const endpoint = "http://127.0.0.1:5000/dropdb";
+  const endpoint = "http://localhost:5000/dropdb";
   fetch(endpoint).then(response => {
     if (!response.ok) {
       throw new Error(
@@ -43,6 +44,7 @@ export function drop_database() {
   })
 }
 export function init_database() {
+  // const endpoint = "http://127.0.0.1:5000/init_db";
   const endpoint = "http://127.0.0.1:5000/init_db";
   fetch(endpoint).then(response=> {
     if (!response.ok) {
@@ -54,7 +56,9 @@ export function init_database() {
   })
 }
 export function retrieve_database_entries(updater) {
-  const endpoint = "http://127.0.0.1:5000/get_entries_dict"
+  // http://localhost:5000
+  const endpoint = 'http://localhost:5000/get_entries_dict'
+  // const endpoint = 'http://127.0.0.1:5000/get_entries_dict'
   // http://127.0.0.1:5000
   let entries_dict = fetch(endpoint).then(response => {
     if (!response.ok) {
@@ -77,7 +81,8 @@ export function createLesson(title:string, text:string, popup_updater_function){
   console.log("------------------------")
   console.log("Title:", title)
   console.log("Text:", text)
-  const endpoint = `http://127.0.0.1:5000/add_lesson/${title}/${text}`
+  // const endpoint = `http://127.0.0.1:5000/add_lesson/${title}/${text}`
+  const endpoint = `http://localhost:5000/add_lesson/${title}/${text}`
   console.log(`page.tsx.createLesson endpoint: ${endpoint}`)
   console.log("------------------------")
     // const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${seconds}`;
@@ -115,6 +120,7 @@ export default function Root()  {
     if (lessonsDict) {
       // const dictEntry = lessonsDict.find()
       // entries_dict[id] = (title, correct, wrong, text)
+      console.log("WANT THE DATA FROM THIS ENTRY!!!!!!!!!!!!!!!!!!!!!")
       console.log(lessonsDict[activeLessonId])
       const [title, correct_count, wrong_count, text] = lessonsDict[activeLessonId]
       console.log("Title and text I am about to pass onto the card class")
@@ -123,6 +129,7 @@ export default function Root()  {
         <Card
           title={title}
           text={text}
+          id={activeLessonId}
           backToMain={setActiveLessonId}
         >
         </Card>

@@ -6,6 +6,7 @@ import db
 
 app = Flask(__name__)
 CORS(app)
+# CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/', methods=['GET'])
 def hello():
@@ -24,7 +25,6 @@ def init_db():
 @app.route('/get_accuracy/<int:card_id>')
 def get_accuracy(card_id):
     blah = db.get_total_accuracy(card_id)
-    print(f"Server tried to get card accuracy for id={card_id}.. output={blah}")
     # return blah
     return jsonify({
     "status": "ok",
