@@ -1,7 +1,11 @@
 "use client";
 import styles from "./Card.module.css";
 import { useState, useEffect, useReducer } from 'react'
+import { Wpmchart } from "./wpmplots"
 import useSound from "use-sound"
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { color } from "chart.js/helpers";
+// import get_wpm_and_accuracy_plot from "./wpmplots"
 let finished = false
 type CardProps = {
     text: string,
@@ -104,7 +108,6 @@ function reducer(state: State, action: { type: string; key?: string }) {
                 lastWrong: false,
             };
         case "CORRECT":
-            // if (state.curChar === 0) { // IF this is the first key pressed we'd like to add a
             let new_state = {
                 ...state,
                 curChar: state.curChar + 1,
@@ -189,7 +192,7 @@ export function Card({text, title, id, backToMain}: CardProps) {
         }
     })
     const [soundWrong] = useSound('/sounds/wrong.wav', {
-        volume:.50,
+        volume:.30,
     })
 
     const [state, dispatch] = useReducer(reducer, {
@@ -224,6 +227,9 @@ export function Card({text, title, id, backToMain}: CardProps) {
             } 
             else {
                 soundWrong()
+                if (state.curChar >= (text.length - 1) && (!state.lastWrong)) {
+                    dispatch({type: "DONE"})
+                }
                 dispatch({ type: "WRONG" });
             }
         };
@@ -240,9 +246,9 @@ export function Card({text, title, id, backToMain}: CardProps) {
         }
         // getTotalAccuracy(id) // hardcoded card_id as 0
         updateTotalStats(id, state.numRight, state.numWrong, (state.endTime - state.startTime)).then(() => {
-            getTotalWpm(id).then(wppm=> setAllTimeWpm(wppm))
-            getTotalAccuracy(id).then(acc=> setAllTimeAccuracy(acc))
-            .catch((err)=> console.error(err))
+            getTotalWpm(id).then(wppm=> setAllTimeWpm(wppm)).catch((err)=> console.error(err))
+            getTotalAccuracy(id).then(acc=> setAllTimeAccuracy(acc)).catch((err)=> console.error(err))
+            // get_wpm_and_accuracy_plot(id)
         })
     }, [state.status, id])
 
@@ -273,9 +279,13 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 </button>
                 <div className={styles.all_time_stats_card}>
                     ----------All time stats----------
-                    <p>WPM: {allTimeWpm}</p>
-                    <p>Accuracy: {100* allTimeAccuracy} %</p>
+                    <p style={{color:"#ff4757"}}>WPM: {allTimeWpm}</p>
+                    <p style={{color: '#2e86de'}}>Accuracy: {100* allTimeAccuracy} %</p>
                     {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
+                    <Wpmchart
+                        id={id}
+                    >
+                    </Wpmchart>
                 </div>
             </div>
         </div>
