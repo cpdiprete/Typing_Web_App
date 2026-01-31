@@ -1,4 +1,17 @@
 import sqlite3
+
+# def update_critical_keys(keys_dictionary): # WHEN I FINISH CASE WHEN SQL LESSON, I CAN DO THIS
+#     update_string = "UPDATE "
+#     SET_string = "SET incorrect = ?, correct = ?"
+#     for (key, (correct, incorrect)) in keys_dictionary.items():
+#         s = f"{key}, correct, incorrect, "
+#         update_string += s
+#     no_comma_update_string = update_string[:-2] # gets all but the last 2 chars
+
+#     query = """
+#     UPDATE critical_keys
+#     """
+
 def wpm_calculator(correct, incorrect, millis):
     wpm = (correct + incorrect) / 5
     seconds = millis / 1000
@@ -9,7 +22,7 @@ def wpm_calculator(correct, incorrect, millis):
         wpm = wpm / mins
     return wpm
 def init_db():
-    create_Lessons_table = """CREATE TABLE IF NOT EXISTS Lessons
+    create_lessons_table = """CREATE TABLE IF NOT EXISTS Lessons
                     (id INTEGER PRIMARY KEY, 
                     title text NOT NULL, 
                     text_data text NOT NULL,
@@ -26,11 +39,19 @@ def init_db():
         accuracy REAL NOT NULL
         )
         """
+    # critical_keys => (character, wrong/right)
+    # create_critical_keys_table = """
+    # CREATE TABLE IF NOT EXISTS critical_keys (
+    #     character TEXT,
+    #     category TEXT
+    # )
+    # """
     try:
         with sqlite3.connect("typing.db") as typing_db:
             cursor = typing_db.cursor()
-            cursor.execute(create_Lessons_table)
+            cursor.execute(create_lessons_table)
             cursor.execute(create_wpm_table)
+            # cursor.execute(create_critical_keys_table)
     except sqlite3.OperationalError as e:
         print("Failed to open database:", e)
 # I want the ability to plot accuracy and wpm values.
@@ -60,7 +81,20 @@ def drop_db():
             cursor.execute(query)
             cursor.execute(drop_wpm_plot)
     except sqlite3.OperationalError as e:
+        print("Failed to drop database:", e)
+        
+def clear_db():
+    lessons_query = "DELETE FROM Lessons"
+    wpm_table_query = "DELETE FROM wpms_table"
+    try:
+        with sqlite3.connect("typing.db") as typingdb:
+            cursor = typingdb.cursor()
+            cursor.execute(lessons_query)
+            cursor.execute(wpm_table_query)
+    except sqlite3.OperationalError as e:
         print("Failed to delete database:", e)
+    
+    
 def get_next_valid_card_id():
     query = """
     SELECT id
@@ -196,6 +230,19 @@ def get_total_wpm(card_id):
         correct, wrong, milliseconds = result
         wpm = wpm_calculator(correct, wrong, milliseconds)
         return wpm
+def update_problem_keys(pkDict):
+    # dict[char] = (WrongCount,RightCount)
+    query = """
+    UPDATE problemKeys
+    SET
+    
+    """
+    for (char, (wrong, right)) in pkDict.items():
+        query += f"[{char}] = "
+    query = query[:-1:]
+    
+    print(query)
+    
     # __________________________________________________________________________________________________________________________
 ##                          __________________ Testing database methods section __________________
 # ______________________________________________________________________________________________________________________________
@@ -228,10 +275,18 @@ def test_wpm_plot():
     update_chars_and_seconds(1, 30, 0, 1000)
     get_wpm_plot(0)
 
+
+def testPKDict():
+    rawpKdict = dict()
+    rawpKdict['a'] = (3, 12)
+    rawpKdict['b'] = (1, 34)
+    rawpKdict['c'] = (2, 52)
+    update_problem_keys(rawpKdict)
 if __name__ == "__main__":
+    testPKDict()
     # test_wpm_plot()
     
-    testing_refresh_db()
+    # testing_refresh_db()
     # view_whole_db()
     
     # testing_lesson_additions()
@@ -240,4 +295,5 @@ if __name__ == "__main__":
     
     # get_total_accuracy(0)
     # print(get_total_wpm(0))
+
 

@@ -17,6 +17,14 @@ def drop_database():
     print("Dropping the database")
     db.drop_db()
     return jsonify({"message": "Hello from the backend!"})
+
+@app.route('/cleardb', methods=['GET'])
+def clear_database():
+    print("Clearing the database's")
+    db.clear_db()
+    return jsonify({"message": "Hello from the backend!"})
+
+
 @app.route('/init_db')
 def init_db():
     db.init_db()

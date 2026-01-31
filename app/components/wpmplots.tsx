@@ -1,7 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
 import { useState, useEffect } from 'react'
 
-export async function get_wpm_and_accuracy_plot(id : number, wpmUpdater, accUpdater) {
+export async function get_wpm_and_accuracy_plot(id : number, wpmUpdater) {
     const endpoint = `http://127.0.0.1:5000/get_wpm_and_accuracy_plot/${id}`
     const response = fetch(endpoint).then((resp) => {
         if (!resp.ok) {
@@ -17,16 +17,8 @@ export async function get_wpm_and_accuracy_plot(id : number, wpmUpdater, accUpda
             wpmsDict = [...wpmsDict, newEntry]
             i += 1
         }
-        // wpmUpdater(data.wpms)
         wpmUpdater(wpmsDict)
-        // data.wpms.map((id) => {
-        //     console.log("----------", id)
-        //     console.log("----------", data.wpms[id])
-        // })
-        // accUpdater(data.accuracies)
-        // return (data.wpms, data.accuracies)
     })
-    // return (response[0], response[1]);
 }
 // 1. Add this custom Tooltip component above your main component
 const CustomTooltip = ({ active, payload, label }) => {
@@ -49,28 +41,18 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-
 export function Wpmchart(id) {
     const [showPlot, setShowPlot] = useState(false)
     const [wpm_and_accuracy_plot, setWpm_and_accuracy_plot] = useState()
-    const [accPlot, setAccPlot] = useState()
-
-    // const data = [
-    //     { time: '10:00', value: 400 },
-    //     { time: '11:00', value: 300 },
-    //     { time: '12:00', value: 600 },
-    // ];
+    // const [accPlot, setAccPlot] = useState()
     useEffect(() => {
         setShowPlot(true)
-    }, [wpm_and_accuracy_plot, accPlot])
+    }, [wpm_and_accuracy_plot])
 
     useEffect(() => {
-        get_wpm_and_accuracy_plot(id.id, setWpm_and_accuracy_plot, setAccPlot) 
+        get_wpm_and_accuracy_plot(id.id, setWpm_and_accuracy_plot) 
     }, [])
-
-
     return (
-
     showPlot ?
         
         <ResponsiveContainer width="100%" height={300}>
@@ -104,27 +86,3 @@ export function Wpmchart(id) {
 
     )
 }
-//     return(
-//         showPlot ? 
-//             <ResponsiveContainer
-//                 width={"100%"}
-//                 height={300}
-//             >
-//                 <LineChart data={wpmPlot}>
-//                     <XAxis dataKey="index" />
-//                     <YAxis />
-//                     <Tooltip cursor={false}/>
-//                     <Line type="monotone" dataKey="wpm" stroke="red" />
-//                     <Line type="monotone" dataKey="accuracy" stroke="blue" />
-
-//                 </LineChart>
-//             </ResponsiveContainer>
-//         :
-//         <div>
-//             No plot data
-//         </div>
-//     )
-// }
-
-
-// Change LineChart to AreaChart and add <defs> for gradients

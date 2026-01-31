@@ -1,7 +1,7 @@
 "use client";
 import styles from "./Card.module.css";
 import { useState, useEffect, useReducer } from 'react'
-import { Wpmchart } from "./wpmplots"
+import { Wpmchart } from "../wpmplots"
 import useSound from "use-sound"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { color } from "chart.js/helpers";
@@ -29,8 +29,17 @@ type State = {
     startTime: number
     endTime: number
 }
+// type CorrectKeyDictType = {
+//     character: string,
+//     correct_count: number,
+//     incorrect_count: number
+// }
+type CorrectKeyDictType = {
+    character: string,
+    correct_count: number, 
+    incorrect_count: number
+}
 export async function updateTotalStats(card_id:number, correct_chars: number, incorrect_chars: number, seconds:number) {
-  // const endpoint = "http://127.0.0.1:5000";
     const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${seconds}`;
     // const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${100}`;
     const response = await fetch(endpoint, {
@@ -40,8 +49,6 @@ export async function updateTotalStats(card_id:number, correct_chars: number, in
         throw new Error("Request failed");
     }
     console.log("Updated total accuracy")
-    // const data = await response.json();
-    // console.log(data);
 }
 
 export async function getTotalAccuracy(card_id) {
@@ -181,10 +188,26 @@ function get_accuracy(state: State) {
     let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(0)
     return accuracy_percentage
 }
+
 export function Card({text, title, id, backToMain}: CardProps) {
     const [audioUnlocked, setAudioUnlocked] = useState(false);
     const [allTimeWpm, setAllTimeWpm] = useState<number>(9999999)
     const [allTimeAccuracy, setAllTimeAccuracy] = useState<number>(9999999)
+    // const [keyCorrectDict, setKeyCorrectDict] = useState<Map<string, number>>(new Map()); // <char: incorrect
+    // const [keyIncorrectDict, setKeyIncorrectDict] = useState<Map<string, number>>(new Map()); 
+    // const [keyCorrectDict, setKeyCorrectDict] = useState<Array<CorrectKeyDictType>>(); // <char: incorrect
+    const [keyCorrectDict, setKeyCorrectDict] = useState<Array<CorrectKeyDictType>>(
+        [
+            {
+                character: "null",
+                correct_count: 10,
+                incorrect_count: 10
+            }
+            
+        ]
+    ); // <char: incorrect
+    const [testArray, setTestArray] = useState<Array<number>>([0])
+
     const [soundCorrect] = useSound('/sounds/keyboard.wav', {
         volume:.50,
         sprite: {
@@ -218,6 +241,14 @@ export function Card({text, title, id, backToMain}: CardProps) {
             if (e.key === "Backspace") {
                 dispatch({ type: "BACKSPACE" });
             } else if (e.key === text[state.curChar]) {
+                setKeyCorrectDict((prev: Array<CorrectKeyDictType>) => [ /// --------------- THIS IS NOT DONE YET COME BACK TO THIS PLEASUESEEEEEEEE
+                    ...prev
+                    ]
+                )
+                // setTestArray((prev: Array<number>) => [
+                //         ...prev
+                //     ]
+                // )
                 if (state.curChar >= (text.length - 1)) { // No more chars to type
                     dispatch({ type: "DONE" });
                 } else {
@@ -259,7 +290,6 @@ export function Card({text, title, id, backToMain}: CardProps) {
         return  (
         <div className={styles.typing_screen}>
             <div className={styles.finish_display_stats_card}>
-                <p>DONE WITH TYPING TEST!!</p>
                 <p>WPM: {wpm}</p>
                 <p>Accuracy: {accuracy_percentage}%</p>
                 {/* {saveStatsInDatabase} */}
@@ -279,8 +309,10 @@ export function Card({text, title, id, backToMain}: CardProps) {
                 </button>
                 <div className={styles.all_time_stats_card}>
                     ----------All time stats----------
-                    <p style={{color:"#ff4757"}}>WPM: {allTimeWpm}</p>
-                    <p style={{color: '#2e86de'}}>Accuracy: {100* allTimeAccuracy} %</p>
+                    <div>
+                        <p style={{color:"#ff4757"}}>WPM: {allTimeWpm}</p>
+                        <p style={{color: '#2e86de'}}>Accuracy: {100* allTimeAccuracy} %</p>
+                    </div>
                     {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
                     <Wpmchart
                         id={id}
