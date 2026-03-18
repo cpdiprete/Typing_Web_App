@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+import json
+
 # from db import retrieve_stats
 import db
 
@@ -86,6 +88,15 @@ def get_wpm_and_accuracy_plot(cardId):
         "wpms" : wpms,
         "accuracies": accuracies
     })
+@app.route('/update_key_accuracy_dict', methods=['POST'])
+def update_key_accuracy_dict():
+    data = request.get_json()
+    print(data)
+    print("--------------------------------\n\n")
+    print(type(data)) ## Dict type, ready to pass into DB functions
+    # print(type(json.dumps(data)))
+    return jsonify({"status": "ok"})
+
     
 # if __name__ == "__main__":
 #     app.run(port=5000)

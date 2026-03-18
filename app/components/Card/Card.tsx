@@ -5,6 +5,8 @@ import { Wpmchart } from "../wpmplots"
 import useSound from "use-sound"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { color } from "chart.js/helpers";
+import { stringify } from "querystring";
+import { data } from "react-router-dom";
 // import get_wpm_and_accuracy_plot from "./wpmplots"
 let finished = false
 type CardProps = {
@@ -28,17 +30,15 @@ type State = {
     status: string
     startTime: number
     endTime: number
+    correctKeyDict: CorrectKeyDictType,
+    excerpText: string
 }
-// type CorrectKeyDictType = {
-//     character: string,
-//     correct_count: number,
-//     incorrect_count: number
-// }
-type CorrectKeyDictType = {
-    character: string,
-    correct_count: number, 
-    incorrect_count: number
+type keyStats = {
+    correct: number,
+    incorrect: number
 }
+type CorrectKeyDictType = Record<string, keyStats>
+
 export async function updateTotalStats(card_id:number, correct_chars: number, incorrect_chars: number, seconds:number) {
     const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${seconds}`;
     // const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${100}`;
@@ -49,6 +49,28 @@ export async function updateTotalStats(card_id:number, correct_chars: number, in
         throw new Error("Request failed");
     }
     console.log("Updated total accuracy")
+}
+export async function updateAccuracyKeyDict(keyDict: CorrectKeyDictType ) {
+    try{
+        // console.log(JSON.stringify(keyDict))
+        const endpoint = `http://127.0.0.1:5000//update_key_accuracy_dict`
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(keyDict)
+        })
+        if (!response.ok) {
+            throw new Error(`HTTP error: Status ${response.status}`);
+        }
+        const result = await response.json()
+        console.log('Success:', result);
+    } catch (error) {
+        console.error('Error:', error);
+        // Handle error
+    }
+
 }
 
 export async function getTotalAccuracy(card_id) {
@@ -146,6 +168,7 @@ function reducer(state: State, action: { type: string; key?: string }) {
                     ...state,
                     lastWrong: true
                 };
+                
             }
             if (state.curChar === 0) {
                 wrong_state = {
@@ -153,6 +176,7 @@ function reducer(state: State, action: { type: string; key?: string }) {
                     startTime: Date.now()
                 }
             }
+            // state.correctKeyDict[state.co
             return wrong_state
         case "DONE":
             console.log("DONE")
@@ -193,20 +217,8 @@ export function Card({text, title, id, backToMain}: CardProps) {
     const [audioUnlocked, setAudioUnlocked] = useState(false);
     const [allTimeWpm, setAllTimeWpm] = useState<number>(9999999)
     const [allTimeAccuracy, setAllTimeAccuracy] = useState<number>(9999999)
-    // const [keyCorrectDict, setKeyCorrectDict] = useState<Map<string, number>>(new Map()); // <char: incorrect
-    // const [keyIncorrectDict, setKeyIncorrectDict] = useState<Map<string, number>>(new Map()); 
-    // const [keyCorrectDict, setKeyCorrectDict] = useState<Array<CorrectKeyDictType>>(); // <char: incorrect
-    const [keyCorrectDict, setKeyCorrectDict] = useState<Array<CorrectKeyDictType>>(
-        [
-            {
-                character: "null",
-                correct_count: 10,
-                incorrect_count: 10
-            }
-            
-        ]
-    ); // <char: incorrect
-    const [testArray, setTestArray] = useState<Array<number>>([0])
+    const [keyCorrectDict, setKeyCorrectDict] = useState<CorrectKeyDictType>({["a"]: {correct: 0, incorrect: 0}});
+
 
     const [soundCorrect] = useSound('/sounds/keyboard.wav', {
         volume:.50,
@@ -227,7 +239,9 @@ export function Card({text, title, id, backToMain}: CardProps) {
         startTime: Date.now(),
         textLength: text.length,
         status: "Typing",
-        endTime: Date.now()
+        endTime: Date.now(),
+        correctKeyDict: {["a"]: {correct: 0, incorrect: 0}},
+        excerpText: text
     });
     useEffect(() => {
         console.log("Ran a useeEffect!")
@@ -241,26 +255,36 @@ export function Card({text, title, id, backToMain}: CardProps) {
             if (e.key === "Backspace") {
                 dispatch({ type: "BACKSPACE" });
             } else if (e.key === text[state.curChar]) {
-                setKeyCorrectDict((prev: Array<CorrectKeyDictType>) => [ /// --------------- THIS IS NOT DONE YET COME BACK TO THIS PLEASUESEEEEEEEE
-                    ...prev
-                    ]
-                )
-                // setTestArray((prev: Array<number>) => [
-                //         ...prev
-                //     ]
-                // )
+                setKeyCorrectDict(prev => ({
+                    ...prev,
+                    [e.key]: {
+                        // Check if char exists, otherwise start at 0
+                        correct: (prev[e.key]?.correct || 0) + 1,
+                        incorrect: prev[e.key]?.incorrect || 0
+                    }
+                }));
                 if (state.curChar >= (text.length - 1)) { // No more chars to type
                     dispatch({ type: "DONE" });
                 } else {
                     soundCorrect({id: 'click'});
+                    // console.log("-----------------", keyCorrectDict)
                     dispatch({ type: "CORRECT" });
                 }
             } 
             else {
                 soundWrong()
                 if (state.curChar >= (text.length - 1) && (!state.lastWrong)) {
+                    console.log(state.correctKeyDict)
                     dispatch({type: "DONE"})
                 }
+                setKeyCorrectDict(prev => ({
+                    ...prev,
+                    [text[state.curChar]]: {
+                        // Check if char exists, otherwise start at 0
+                        correct: prev[text[state.curChar]]?.correct || 0,
+                        incorrect:(prev[text[state.curChar]]?.incorrect || 0) + 1
+                    }
+                }));
                 dispatch({ type: "WRONG" });
             }
         };
@@ -279,8 +303,10 @@ export function Card({text, title, id, backToMain}: CardProps) {
         updateTotalStats(id, state.numRight, state.numWrong, (state.endTime - state.startTime)).then(() => {
             getTotalWpm(id).then(wppm=> setAllTimeWpm(wppm)).catch((err)=> console.error(err))
             getTotalAccuracy(id).then(acc=> setAllTimeAccuracy(acc)).catch((err)=> console.error(err))
+            updateAccuracyKeyDict(keyCorrectDict)
             // get_wpm_and_accuracy_plot(id)
         })
+
     }, [state.status, id])
 
 

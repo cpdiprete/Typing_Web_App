@@ -22,35 +22,37 @@ def wpm_calculator(correct, incorrect, millis):
         wpm = wpm / mins
     return wpm
 def init_db():
-    create_lessons_table = """CREATE TABLE IF NOT EXISTS Lessons
-                    (id INTEGER PRIMARY KEY, 
-                    title text NOT NULL, 
-                    text_data text NOT NULL,
-                    total_typed_chars Integer, 
-                    total_correct_chars Integer,
-                    total_wrong_chars Integer,
-                    milliseconds Integer
-                    );"""
+    create_lessons_table = """CREATE TABLE IF NOT EXISTS Lessons (
+            id INTEGER PRIMARY KEY, 
+            title text NOT NULL, 
+            text_data text NOT NULL,
+            total_typed_chars Integer, 
+            total_correct_chars Integer,
+            total_wrong_chars Integer,
+            milliseconds Integer
+    );"""
     create_wpm_table = """
         CREATE TABLE IF NOT EXISTS wpms_table
         (id INTEGER PRIMARY_KEY,
         lessonid INTEGER NOT NULL,
         wpm REAL NOT NULL,
         accuracy REAL NOT NULL
-        )
-        """
-    # critical_keys => (character, wrong/right)
-    # create_critical_keys_table = """
-    # CREATE TABLE IF NOT EXISTS critical_keys (
-    #     character TEXT,
-    #     category TEXT
-    # )
-    # """
+    )
+    """
+    create_key_accuracy_table = """
+    CREATE TABLE IF NOT EXISTS key_table (
+        character TEXT,
+        correct Integer,
+        incorrect Integer
+    )
+    """
     try:
         with sqlite3.connect("typing.db") as typing_db:
             cursor = typing_db.cursor()
             cursor.execute(create_lessons_table)
             cursor.execute(create_wpm_table)
+            cursor.execute(create_key_accuracy_table)
+            typing_db.commit()
             # cursor.execute(create_critical_keys_table)
     except sqlite3.OperationalError as e:
         print("Failed to open database:", e)
@@ -232,17 +234,33 @@ def get_total_wpm(card_id):
         return wpm
 def update_problem_keys(pkDict):
     # dict[char] = (WrongCount,RightCount)
-    query = """
-    UPDATE problemKeys
-    SET
-    
+    # query = """
+    # UPDATE problemKeys
+    # SET 
+    #     correct = (correct + ?),
+    #     incorrect = (incorrect + ?), 
+    # WHERE character = (?)
+    # """
+    q2 = """
+    INSERT INTO problemKeys
+    (
+        character,
+        correct,
+        incorrect
+    )
+    VALUES (?, ?, ?)
+    ON CONFLICT (character)
+    DO UPDATE SET 
+        correct = (correct + ?)
+        incorrect = (incorrect + ?)
     """
-    for (char, (wrong, right)) in pkDict.items():
-        query += f"[{char}] = "
-    query = query[:-1:]
     
-    print(query)
-    
+    try:
+        with sqlite3.connect("typing.db") as typing_db:
+            cursor = typing_db.cursor()
+            cursor.execute(q2, ("a", 2, 10, 2, 10))
+    except sqlite3.Error as e:
+        print("error", e)
     # __________________________________________________________________________________________________________________________
 ##                          __________________ Testing database methods section __________________
 # ______________________________________________________________________________________________________________________________
@@ -283,7 +301,10 @@ def testPKDict():
     rawpKdict['c'] = (2, 52)
     update_problem_keys(rawpKdict)
 if __name__ == "__main__":
-    testPKDict()
+    init_db()
+    update_problem_keys("hi")
+    # testPKDict()
+    
     # test_wpm_plot()
     
     # testing_refresh_db()
