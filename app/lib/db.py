@@ -1,17 +1,5 @@
 import sqlite3
 
-# def update_critical_keys(keys_dictionary): # WHEN I FINISH CASE WHEN SQL LESSON, I CAN DO THIS
-#     update_string = "UPDATE "
-#     SET_string = "SET incorrect = ?, correct = ?"
-#     for (key, (correct, incorrect)) in keys_dictionary.items():
-#         s = f"{key}, correct, incorrect, "
-#         update_string += s
-#     no_comma_update_string = update_string[:-2] # gets all but the last 2 chars
-
-#     query = """
-#     UPDATE critical_keys
-#     """
-
 def wpm_calculator(correct, incorrect, millis):
     wpm = (correct + incorrect) / 5
     seconds = millis / 1000
@@ -43,7 +31,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS key_table (
         character TEXT,
         correct Integer,
-        incorrect Integer
+        incorrect Integer,
+        UNIQUE(character)
     )
     """
     try:
@@ -58,6 +47,7 @@ def init_db():
         print("Failed to open database:", e)
 # I want the ability to plot accuracy and wpm values.
 def get_wpm_plot(id):
+    init_db()
     query = """
     SELECT 
         wpm,
@@ -74,6 +64,7 @@ def get_wpm_plot(id):
         return values
         
 def drop_db():
+    init_db()
     query = """DROP TABLE IF EXISTS Lessons"""
     drop_wpm_plot = """
     DROP TABLE IF EXISTS wpms_table"""
@@ -86,6 +77,7 @@ def drop_db():
         print("Failed to drop database:", e)
         
 def clear_db():
+    init_db()
     lessons_query = "DELETE FROM Lessons"
     wpm_table_query = "DELETE FROM wpms_table"
     try:
@@ -98,6 +90,7 @@ def clear_db():
     
     
 def get_next_valid_card_id():
+    init_db()
     query = """
     SELECT id
     FROM Lessons
@@ -115,6 +108,7 @@ def get_next_valid_card_id():
         return next_id
     
 def get_next_valid_wpm_table_id(card_id):
+    init_db()
     query = """
     SELECT id
     FROM wpms_table
@@ -132,6 +126,7 @@ def get_next_valid_wpm_table_id(card_id):
             return (next_valid_id[0] + 1)
     
 def add_lesson(title, text_data):
+    init_db()
     new_id = get_next_valid_card_id()
     query = """
         INSERT OR IGNORE INTO Lessons (id, title, text_data, total_typed_chars, total_correct_chars, total_wrong_chars, milliseconds)
@@ -143,6 +138,7 @@ def add_lesson(title, text_data):
         cursor.execute(query, (new_id, title, text_data))
         
 def view_whole_db():
+    init_db()
     query = """SELECT * FROM Lessons"""
     wpm_plot_query = """SELECT * FROM wpms_table"""
     with sqlite3.connect("typing.db") as typing_db:
@@ -157,6 +153,7 @@ def view_whole_db():
     
 
 def retrieve_all_db_entries():
+    init_db()
     query = """
     SELECT id, title, total_correct_chars, total_wrong_chars, text_data
     FROM Lessons
@@ -176,6 +173,7 @@ def retrieve_all_db_entries():
         return entries_dict
         
 def update_chars_and_seconds(card_id, correct, incorrect, seconds):
+    init_db()
     query = """
     UPDATE Lessons
     SET total_correct_chars = total_correct_chars + ?,
@@ -196,6 +194,7 @@ def update_chars_and_seconds(card_id, correct, incorrect, seconds):
         cursor.execute(add_wpm_entry_query, (next_valid_wpm_id, card_id, wpm, accuracy))
         
 def get_total_accuracy(card_id):
+    init_db()
     query = """
     SELECT total_correct_chars,
     total_wrong_chars
@@ -219,6 +218,7 @@ def get_total_accuracy(card_id):
     return accuracy
 
 def get_total_wpm(card_id):
+    init_db()
     query = """
     SELECT total_correct_chars,
     total_wrong_chars,
@@ -233,16 +233,17 @@ def get_total_wpm(card_id):
         wpm = wpm_calculator(correct, wrong, milliseconds)
         return wpm
 def update_problem_keys(pkDict):
-    # dict[char] = (WrongCount,RightCount)
-    # query = """
-    # UPDATE problemKeys
-    # SET 
-    #     correct = (correct + ?),
-    #     incorrect = (incorrect + ?), 
-    # WHERE character = (?)
-    # """
+    init_db()
+    print(f"[DEBUG TRACE] lib/db.update problem_keys(). Passed in problem key dictionary: {pkDict}")
+    formatted_list = []
+    for char, nestedDict in pkDict.items():
+        correct = nestedDict["correct"]
+        incorrect = nestedDict["incorrect"]
+        formatted_list.append([char, correct, incorrect, correct, incorrect])
+    print(formatted_list)
+    
     q2 = """
-    INSERT INTO problemKeys
+    INSERT INTO key_table
     (
         character,
         correct,
@@ -251,16 +252,40 @@ def update_problem_keys(pkDict):
     VALUES (?, ?, ?)
     ON CONFLICT (character)
     DO UPDATE SET 
-        correct = (correct + ?)
+        correct = (correct + ?),
         incorrect = (incorrect + ?)
     """
     
     try:
         with sqlite3.connect("typing.db") as typing_db:
             cursor = typing_db.cursor()
-            cursor.execute(q2, ("a", 2, 10, 2, 10))
+            cursor.executemany(q2, formatted_list)
     except sqlite3.Error as e:
         print("error", e)
+def view_problem_keys():
+    try:
+        q = """
+        SELECT * FROM key_table
+        ORDER BY (incorrect) 
+        """
+        db = sqlite3.connect("typing.db")
+        cursor = db.cursor()
+        cursor.execute(q)
+        results = cursor.fetchall()
+        accuracy_formatted = []
+        for (character, incorrect, correct) in results:
+            if (correct + incorrect == 0):
+                accuracy = 0
+            else:
+                accuracy = round(100 * correct / (correct + incorrect), 1)
+            accuracy_formatted.append([character, accuracy])
+        accuracy_formatted = sorted(accuracy_formatted, key=lambda x: x[1] )
+        return accuracy_formatted
+        # return cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"[ERROR] lib/db.view_problem_keys() : {e}")
+        
+    
     # __________________________________________________________________________________________________________________________
 ##                          __________________ Testing database methods section __________________
 # ______________________________________________________________________________________________________________________________
@@ -295,15 +320,13 @@ def test_wpm_plot():
 
 
 def testPKDict():
-    rawpKdict = dict()
-    rawpKdict['a'] = (3, 12)
-    rawpKdict['b'] = (1, 34)
-    rawpKdict['c'] = (2, 52)
-    update_problem_keys(rawpKdict)
+    newTestDict = {'a': {'correct': 4, 'incorrect': 1}, 't': {'correct': 10, 'incorrect': 0}, 'h': {'correct': 7, 'incorrect': 1}, 'i': {'correct': 8, 'incorrect': 0}}
+    update_problem_keys(newTestDict)
+    
 if __name__ == "__main__":
     init_db()
-    update_problem_keys("hi")
     # testPKDict()
+    print(view_problem_keys())
     
     # test_wpm_plot()
     

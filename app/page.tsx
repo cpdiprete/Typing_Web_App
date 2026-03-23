@@ -25,6 +25,7 @@ export function NavBar() {
     <div>
       <Link href={"/"}> Home Page </Link> |
       <Link href={"/components/ProblemKeys"}> Problem Keys </Link>
+
     </div>
   );
 }

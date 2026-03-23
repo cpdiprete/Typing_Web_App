@@ -1,3 +1,4 @@
+// "use client";
 export function drop_database() {
   // const endpoint = "http://127.0.0.1:5000/dropdb";
     const endpoint = "http://localhost:5000/dropdb";
@@ -74,4 +75,48 @@ export function createLesson(title:string, text:string, popup_updater_function){
         popup_updater_function(false)
         return response // need to return something so I xan make an "if ..then based on this funcgion to set the new lesson popup"
     })
+}
+
+// export async function getProblemKeys() {
+//     const endpoint = "http://localhost:5000/get_key_accuracy_dict"
+//     const return_result = await fetch(endpoint, {
+//         method: "GET",
+//     }).then(response => {
+//         if (!response.ok) {
+//             throw new Error (
+//                 'Http error in lib/appCRUDfunctions/getProblemKeys()'
+//             )
+//         }
+//         return response.json()
+//     }).then(data => {
+//         // console.log("----------", data)
+//         return data
+//     })
+//     console.log("=============== ", return_result)
+//     return return_result
+
+// }
+export async function getProblemKeys() {
+    const endpoint = "http://localhost:5000/get_key_accuracy_dict"
+    let return_result = await fetch(endpoint, {method: "GET",})
+    let data = await return_result.json()
+    // return data
+    // // const data = return_result.json()
+    console.log("+++++++++++, ", data)
+    return data
+    
+    // .then(response => {
+    //     if (!response.ok) {
+    //         throw new Error (
+    //             'Http error in lib/appCRUDfunctions/getProblemKeys()'
+    //         )
+    //     }
+    //     return response.json()
+    // }).then(data => {
+    //     // console.log("----------", data)
+    //     return data
+    // })
+    // console.log("=============== ", return_result)
+    // return return_result
+
 }

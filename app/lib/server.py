@@ -94,9 +94,15 @@ def update_key_accuracy_dict():
     print(data)
     print("--------------------------------\n\n")
     print(type(data)) ## Dict type, ready to pass into DB functions
+    db.update_problem_keys(data)
     # print(type(json.dumps(data)))
     return jsonify({"status": "ok"})
-
+@app.route('/get_key_accuracy_dict', methods=['GET'])
+def get_key_accuracy_dict():
+    results = db.view_problem_keys()
+    print(results)
+    # return jsonify({"status": "ok"}, results)
+    return jsonify(results)
     
 # if __name__ == "__main__":
 #     app.run(port=5000)

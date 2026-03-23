@@ -1,0 +1,11 @@
+.problemKeyContainer{
+    margin:auto;
+    width: 80%;
+    height: 100%;
+    text-align: center;
+    padding:24px;
+    background-color: lightgray;
+    font-size: xx-large;
+    font-weight: bolder;
+    color: grey
+}
