@@ -10,7 +10,7 @@ import textarea from 'react'
 import { BrowserRouter, Route, Router, Routes, useNavigate } from 'react-router-dom'
 import ProblemKeyPage from "./components/ProblemKeys/page";
 import Link from 'next/link';
-import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries } from "./lib/appCRUDfunctions";
+import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, getTopXProblemKeys } from "./lib/appCRUDfunctions";
 
 const lesson1text = "Lorem Ipsum only five centuries"
 const lesson2text = "Calvins Lesson 2 text"
@@ -30,6 +30,11 @@ export function NavBar() {
   );
 }
 export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, textUpdater, popupUpdater}) {
+  /*
+    Renders the popup for a new lesson being created
+    The user will set the input title and text
+    This component 
+  */
     return (
       <div>
         <div
@@ -138,18 +143,7 @@ export function HomePage()  {
       return (
         <div>
           No Lessons-Dict entries
-
           <div/>
-            {/* <button
-              onClick={() => {
-                console.log("New Lesson Button")
-                setNewLessonPopup(true)
-                let resp = retrieve_database_entries(setLessonsDict)
-                console.log(resp)
-              }}
-            >
-              New Lesson +
-            </button> */}
         </div>
       )
     }
@@ -188,8 +182,6 @@ export function HomePage()  {
                   clear_database(),
                   retrieve_database_entries(setLessonsDict)
                 }}
-                
-
               >
                 Clear database tables
               </button>
