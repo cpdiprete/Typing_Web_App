@@ -45,6 +45,22 @@ def init_db():
             # cursor.execute(create_critical_keys_table)
     except sqlite3.OperationalError as e:
         print("Failed to open database:", e)
+    archived_query = """CREATE TABLE IF NOT EXISTS archived 
+        (id INTEGER PRIMARY KEY, 
+        title text NOT NULL, 
+        text_data text NOT NULL,
+        total_typed_chars Integer, 
+        total_correct_chars Integer,
+        total_wrong_chars Integer,
+        milliseconds Integer
+    );"""
+    try:
+        with sqlite3.connect("archived.db") as archived_db:
+            cursor = archived_db.cursor()
+            cursor.execute(archived_query)
+            archived_db.commit()
+    except sqlite3.OperationalError as e:
+        print("Failed make archive table:", e)
 # I want the ability to plot accuracy and wpm values.
 def get_wpm_plot(id):
     init_db()
@@ -80,11 +96,13 @@ def clear_db():
     init_db()
     lessons_query = "DELETE FROM Lessons"
     wpm_table_query = "DELETE FROM wpms_table"
+    problem_keys_query = "DELETE FROM key_table"
     try:
         with sqlite3.connect("typing.db") as typingdb:
             cursor = typingdb.cursor()
             cursor.execute(lessons_query)
             cursor.execute(wpm_table_query)
+            cursor.execute(problem_keys_query)
     except sqlite3.OperationalError as e:
         print("Failed to delete database:", e)
     
@@ -285,6 +303,34 @@ def view_problem_keys():
     except sqlite3.Error as e:
         print(f"[ERROR] lib/db.view_problem_keys() : {e}")
         
+def get_top_X_problem_keys(X: int):
+    try:
+        view_problem_keys()
+        q = """
+        SELECT * FROM key_table
+        ORDER BY (incorrect)
+        """
+        db = sqlite3.connect("typing.db")
+        cursor = db.cursor()
+        cursor.execute(q)
+        rows = cursor.fetchall()
+        # print(rows)
+        accuracySorted = []
+        for row in rows:
+            char, correct, incorrect = row
+            if char == "undefined":
+                continue
+            if correct == 0:
+                accuracy = 0
+            else:
+                accuracy = round(100*(correct / (correct + incorrect)), 2)
+            accuracySorted.append((char, accuracy))
+        accuracySorted = sorted(accuracySorted, key = lambda x: x[1])
+        return accuracySorted[0:X + 1]
+    
+    except sqlite3.Error as e:
+        print(f"[ERROR] lib/db.get_top_X_problem_keys : {e}")
+        
     
     # __________________________________________________________________________________________________________________________
 ##                          __________________ Testing database methods section __________________
@@ -326,7 +372,8 @@ def testPKDict():
 if __name__ == "__main__":
     init_db()
     # testPKDict()
-    print(view_problem_keys())
+    # print(view_problem_keys())
+    print(get_top_X_problem_keys(5))
     
     # test_wpm_plot()
     
