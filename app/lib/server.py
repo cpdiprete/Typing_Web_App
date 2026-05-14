@@ -103,6 +103,13 @@ def get_key_accuracy_dict():
     print(results)
     # return jsonify({"status": "ok"}, results)
     return jsonify(results)
-    
+@app.route('/getTopXProblemKeys/<int:numberOfProblemKeys>', methods = ['GET'])
+def getTopXProblemKeys(numberOfProblemKeys: int):
+    topProblemKeys = db.get_top_X_problem_keys(numberOfProblemKeys)
+    return jsonify({
+        "status": "ok",
+        "ProblemKeys": topProblemKeys
+    })
+        
 # if __name__ == "__main__":
 #     app.run(port=5000)
