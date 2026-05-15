@@ -199,12 +199,12 @@ export function HomePage()  {
                 Clear database tables
               </button>
               
-              {/* <div/> */}
+              {/* <div/>
               <button className="item"
                 onClick={init_database}
               >
                 Init Database
-              </button>
+              </button> */}
               <button
                 onClick={() => {
                   console.log("New Lesson Button")

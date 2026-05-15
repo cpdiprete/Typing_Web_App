@@ -110,7 +110,7 @@ def store_lessons_in_archive():
         if len(lessonsList) > 1:
             cursor.executemany(store, lessonsList)
         else: # single row
-            cursor.execute(store, (lessonsList[0][1], lessonsList[0][1]))
+            cursor.execute(store, (lessonsList[0][0], lessonsList[0][1]))
         archive.commit()
 
 def get_archive_entries():
