@@ -10,7 +10,7 @@ import textarea from 'react'
 import { BrowserRouter, Route, Router, Routes, useNavigate } from 'react-router-dom'
 import ProblemKeyPage from "./components/ProblemKeys/page";
 import Link from 'next/link';
-import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, getTopXProblemKeys } from "./lib/appCRUDfunctions";
+import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, getTopXProblemKeys, populate_lessons_from_archive } from "./lib/appCRUDfunctions";
 
 const lesson1text = "Lorem Ipsum only five centuries"
 const lesson2text = "Calvins Lesson 2 text"
@@ -28,6 +28,17 @@ export function NavBar() {
 
     </div>
   );
+}
+export async function deleteLessonsRender(updater, setLessonsDict) {
+  let result = await clear_database()
+  retrieve_database_entries(setLessonsDict)
+
+  updater(prev => prev + 1)
+
+}
+export async function archiveFunctionsRender(updater) {
+  let result = await populate_lessons_from_archive()
+  updater(prev => prev + 1)
 }
 export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, textUpdater, popupUpdater}) {
   /*
@@ -98,10 +109,11 @@ export function HomePage()  {
   const [lessonsDict, setLessonsDict] = useState<LessonsDict>()
   const [inputTitle, setInputTitle] = useState<string>("")
   const [inputText, setInputText] = useState<string>("")
+  const [reRenderLessons, setReRerenderLessons] = useState<number>(0);
 
   useEffect(() => {
     retrieve_database_entries(setLessonsDict)
-  }, [newLessonPopup])
+  }, [newLessonPopup, reRenderLessons])
   useEffect(() => {
     setNewLessonPopup(false)
   }, [])
@@ -179,8 +191,9 @@ export function HomePage()  {
               </button> */}
               <button className="item"
                 onClick ={() => {
-                  clear_database(),
-                  retrieve_database_entries(setLessonsDict)
+                  deleteLessonsRender(setReRerenderLessons, setLessonsDict)
+                  // clear_database(),
+                  // retrieve_database_entries(setLessonsDict)
                 }}
               >
                 Clear database tables
@@ -201,6 +214,17 @@ export function HomePage()  {
                 }}
               >
                 New Lesson +
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Restore Archived Lessons")
+                   // TODO: make it so that when the server responds with a complete status, it updates the reRenderLessons field to stoop this race condition
+                  //  ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
+                  archiveFunctionsRender(setReRerenderLessons)
+                  populate_lessons_from_archive()
+                }}
+              >
+                Restore Archived Lessons
               </button>
             </div>
           </div>

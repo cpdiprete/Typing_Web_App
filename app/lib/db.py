@@ -98,7 +98,6 @@ def store_lessons_in_archive():
         (title, text_data)
         VALUES (?, ?)
     """
-    
     with sqlite3.connect("typing.db") as typing_db:
         cursor = typing_db.cursor()
         cursor.execute(retrieval)
@@ -123,6 +122,24 @@ def get_archive_entries():
         cursor.execute(query)
         rows = cursor.fetchall()
         print(rows)
+
+def populate_lessons_with_archive():
+    retrieve = """
+    SELECT * FROM archived
+    """
+    delete_from_archive = """
+    DELETE FROM archived
+    """
+    archive = sqlite3.connect("archived.db")
+    archive_cursor = archive.cursor()
+    archive_cursor.execute(retrieve)
+    archived_rows = archive_cursor.fetchall()
+    for _, title, text in archived_rows:
+        add_lesson(title, text)
+    
+    archive_cursor.execute(delete_from_archive)
+    archive.commit()
+    archive.close()
     
 def clear_db():
     init_db()
