@@ -10,7 +10,7 @@ import textarea from 'react'
 import { BrowserRouter, Route, Router, Routes, useNavigate } from 'react-router-dom'
 import ProblemKeyPage from "./components/ProblemKeys/page";
 import Link from 'next/link';
-import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, populate_lessons_from_archive } from "./lib/appCRUDfunctions";
+import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, getTopXProblemKeys, populate_lessons_from_archive } from "./lib/appCRUDfunctions";
 
 const lesson1text = "Lorem Ipsum only five centuries"
 const lesson2text = "Calvins Lesson 2 text"
@@ -41,6 +41,11 @@ export async function archiveFunctionsRender(updater) {
   updater(prev => prev + 1)
 }
 export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, textUpdater, popupUpdater}) {
+  /*
+    Renders the popup for a new lesson being created
+    The user will set the input title and text
+    This component 
+  */
     return (
       <div>
         <div
@@ -150,18 +155,7 @@ export function HomePage()  {
       return (
         <div>
           No Lessons-Dict entries
-
           <div/>
-            {/* <button
-              onClick={() => {
-                console.log("New Lesson Button")
-                setNewLessonPopup(true)
-                let resp = retrieve_database_entries(setLessonsDict)
-                console.log(resp)
-              }}
-            >
-              New Lesson +
-            </button> */}
         </div>
       )
     }
@@ -228,12 +222,6 @@ export function HomePage()  {
                   //  ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
                   archiveFunctionsRender(setReRerenderLessons)
                   populate_lessons_from_archive()
-                  // for (let i = 0; i < 10000; i++) {
-                  //   console.log(i)
-                  // }
-                  // // TODO: make it so that when the server responds with a complete status, it updates the reRenderLessons field to stoop this race condition
-                  // //  ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
-                  // setReRerenderLessons(prev => prev + 1)
                 }}
               >
                 Restore Archived Lessons
