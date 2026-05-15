@@ -48,11 +48,7 @@ def init_db():
     archived_query = """CREATE TABLE IF NOT EXISTS archived 
         (id INTEGER PRIMARY KEY, 
         title text NOT NULL, 
-        text_data text NOT NULL,
-        total_typed_chars Integer, 
-        total_correct_chars Integer,
-        total_wrong_chars Integer,
-        milliseconds Integer
+        text_data text NOT NULL
     );"""
     try:
         with sqlite3.connect("archived.db") as archived_db:
@@ -91,12 +87,50 @@ def drop_db():
             cursor.execute(drop_wpm_plot)
     except sqlite3.OperationalError as e:
         print("Failed to drop database:", e)
-        
+def store_lessons_in_archive():
+    # TODO: get the current lessons titles and text
+    retrieval = """
+    SELECT title, text_data
+    FROM Lessons
+    """
+    store = """
+        INSERT INTO archived
+        (title, text_data)
+        VALUES (?, ?)
+    """
+    
+    with sqlite3.connect("typing.db") as typing_db:
+        cursor = typing_db.cursor()
+        cursor.execute(retrieval)
+        lessonsList = cursor.fetchall()
+        print(lessonsList)
+    if len(lessonsList) == 0:
+        return
+    with sqlite3.connect("archived.db") as archive:
+        cursor = archive.cursor()
+        if len(lessonsList) > 1:
+            cursor.executemany(store, lessonsList)
+        else: # single row
+            cursor.execute(store, (lessonsList[0][1], lessonsList[0][1]))
+        archive.commit()
+
+def get_archive_entries():
+    query = """
+    SELECT * FROM archived
+    """
+    with sqlite3.connect("archived.db") as archive:
+        cursor = archive.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        print(rows)
+    
 def clear_db():
     init_db()
+    store_lessons_in_archive()
     lessons_query = "DELETE FROM Lessons"
     wpm_table_query = "DELETE FROM wpms_table"
     problem_keys_query = "DELETE FROM key_table"
+    # TODO: archive my lessons text before deleting
     try:
         with sqlite3.connect("typing.db") as typingdb:
             cursor = typingdb.cursor()
@@ -158,7 +192,7 @@ def add_lesson(title, text_data):
 def view_whole_db():
     init_db()
     query = """SELECT * FROM Lessons"""
-    wpm_plot_query = """SELECT * FROM wpms_table"""
+    wpm_plot_query = """SELECT * FROM wpms_table""" 
     with sqlite3.connect("typing.db") as typing_db:
         cursor = typing_db.cursor()
         cursor.execute(query)
@@ -370,10 +404,15 @@ def testPKDict():
     update_problem_keys(newTestDict)
     
 if __name__ == "__main__":
+    # print("hello")
     init_db()
+    clear_db()
     # testPKDict()
     # print(view_problem_keys())
-    print(get_top_X_problem_keys(5))
+    # print(get_top_X_problem_keys(5))
+    # store_lessons_in_archive()
+    get_archive_entries()
+
     
     # test_wpm_plot()
     
