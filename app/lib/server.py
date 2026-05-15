@@ -110,6 +110,12 @@ def getTopXProblemKeys(numberOfProblemKeys: int):
         "status": "ok",
         "ProblemKeys": topProblemKeys
     })
+@app.route('/populate_lessons_from_archive', methods = ['GET'])
+def populate_lessons_from_archive():
+    db.populate_lessons_with_archive()
+    return jsonify({
+        "status": "ok"
+    })
         
 # if __name__ == "__main__":
 #     app.run(port=5000)

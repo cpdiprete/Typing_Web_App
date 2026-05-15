@@ -86,3 +86,13 @@ export async function getTopXProblemKeys(X: number) {
     console.log(data.ProblemKeys)
     return data.ProblemKeys
 }
+
+export async function populate_lessons_from_archive() {
+    const endpoint = 'http://localhost:5000/populate_lessons_from_archive'
+    let resp = await fetch(endpoint, {method: "GET", })
+    let data = await resp.json()
+    if (data.status !== "ok") {
+        console.log("Failed to populate lessons from archive entries")
+    }
+
+}
