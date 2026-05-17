@@ -1,0 +1,111 @@
+/* Darkens the background behind the popup */
+.newLessonPopup {
+  /* Dimensions & Spacing */
+  width: 50%;
+  min-width: 400px; /* Prevents it from getting too squished on small screens */
+  height: auto; /* Let the content dictate the height, rather than stretching it */
+  padding: 40px 30px; /* Adds generous breathing room inside the box */
+  margin: 50px auto; /* Centers the box horizontally and pushes it down slightly
+
+  /* Visual Polish */
+  background-color: #ffffff; /* Crisp white is standard for modern input forms */
+  border-radius: 16px; /* Soft, modern rounded corners */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Gives it a subtle 3D 'floating' shadow */
+
+  /* Flexbox Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Automatically adds space between your titles, textareas, and button! */
+}
+.fullPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.pageTitle {
+  font-weight: bold;
+  font-size: x-large;
+}
+.lessonCardSubtitles {
+  font-weight: bold;
+}
+.main_screen{
+    padding:10px;
+    /* background-color: lightpink; */
+    background-color: grey;
+    height: 100vh;
+}
+.create_lesson_button {
+  width: 100%; /* Makes the button span the full width of the card */
+  padding: 14px 20px;
+  margin-top: 10px; /* Gives a little extra space above the button */
+  
+  background-color: #FF8C00; /* A richer, nicer shade of orange */
+  color: white; /* High contrast text */
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px; /* Spreads the ALL CAPS text out slightly so it's easier to read */
+  
+  border: none; /* Removes default browser borders */
+  border-radius: 8px;
+  cursor: pointer; /* Turns the mouse into a hand icon when hovering */
+  
+  transition: background-color 0.2s, transform 0.1s; /* Smooth animations */
+}
+
+/* What happens when the user hovers their mouse over the button */
+.create_lesson_button:hover {
+  background-color: #E67E22; /* Slightly darker orange */
+}
+
+/* What happens when the user actively clicks down on the button */
+.create_lesson_button:active {
+  transform: scale(0.98); /* Makes the button visually 'press' into the screen */
+}
+.lesson_list{
+    background-color: lightblue;
+    display: flex;
+    margin:auto;
+    padding:10px;
+    width: 50%;
+    flex-direction: column;     /* stack vertically */
+    gap: 12px;                  /* no quotes */
+    font-size: xx-large;
+    font-weight: bolder;
+}
+.lesson_card{
+    gap: 12px;
+    background-color:lightcyan;
+    color: grey
+
+}
+
+/* Styles the text input boxes */
+.lessonInput {
+  width: 100%;
+  box-sizing: border-box; /* Ensures padding doesn't push the width past 100% */
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0; /* Subtle light gray border */
+  border-radius: 8px; /* Slightly rounded to match the outer card */
+  font-family: inherit; /* Inherits whatever font your app is using */
+  font-size: 16px; /* A good, readable size for user input */
+  resize: vertical; /* Only lets the user resize the box up and down, not sideways */
+  transition: border-color 0.2s ease; /* Smooth animation when clicked */
+}
+
+/* Adds a nice highlight when the user clicks into the box */
+.lessonInput:focus {
+  outline: none; /* Removes the default ugly blue glow */
+  border-color: #FFA500; /* Replaces it with a crisp orange border matching your theme */
+}
+
+/* Let's make the title input a bit shorter than the text body input */
+.titleInput {
+  min-height: 50px;
+}
+.textInput {
+  min-height: 120px;
+}

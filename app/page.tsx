@@ -3,8 +3,7 @@ import Image from "next/image";
 // import rawText from "./Text_Samples/left_hand.tsx"
 import { useState, useEffect } from 'react'
 import { Card } from "./components/Card/Card";
-// import { Lesson } from "./components/Lesson";
-import styles from "./components/Lesson.module.css";
+import home_page_styles from "./Home_page_styles.module.css"
 import { stringify } from "querystring";
 import textarea from 'react'
 import { BrowserRouter, Route, Router, Routes, useNavigate } from 'react-router-dom'
@@ -47,60 +46,47 @@ export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, te
     This component 
   */
     return (
-      <div>
+      <div className={home_page_styles.fullPage}>
+        <h1 className = {home_page_styles.pageTitle}>Make a new lesson page</h1>
+      <div
+        className={home_page_styles.newLessonPopup}
+          >
+          <h1 className={home_page_styles.lessonCardSubtitles}>Lesson Name</h1>
         <div
-          style={{
-            justifyContent:'center',
-            justifyItems:'center',
-            display:'flex',
-            flexDirection:'column'
-          }}
         >
-          {/* New Lesson popup */}
-          Lesson Name
-            <textarea
-                name="title"
-                autoFocus={true}
-                defaultValue="ex. Lesson 2"
-                onChange={e => {
-                  // setInputTitle(e.target.value)
-                  titleUpdater(e.target.value)
-                  // console.log(e.target.value)
-                }
-                }
-              >
-                {/* textttt */}
-
-            </textarea>
-            Lesson Text
-            <textarea
+          <textarea
+            name="title"
+            className={`${home_page_styles.lessonInput} ${home_page_styles.titleInput}`}
+            autoFocus={true}
+            defaultValue="ex. Lesson 2"
+            onChange={e => titleUpdater(e.target.value)}
+          />
+            </div>
+            <h1 className={home_page_styles.lessonCardSubtitles}>Lesson Text</h1>
+            <div>
+          <textarea
             name="text"
+            className={`${home_page_styles.lessonInput} ${home_page_styles.textInput}`}
             autoFocus={true}
             defaultValue="Fill in lesson text here"
-              onChange={e => {
-                textUpdater(e.target.value)
-                // setInputText(e.target.value)
-                }}
-            >
-              {/* textttt */}
-            </textarea>
+            onChange={e => textUpdater(e.target.value)}
+          />
           </div>
           <button
-          className={styles.create_lesson_button}
+          className={home_page_styles.create_lesson_button}
           onClick={() => {
             console.log("Submit button")
             console.log("title: ", inputTitle)
             console.log("text: ", inputText)
             createLesson(inputTitle, inputText, popupUpdater)
-            // setNewLessonPopup(false)
           }}
           >
             CREATE LESSON
           </button>
       </div>
+      </div>
     )
 }
-
 
 export function HomePage()  {
   const [serverText, setServerText] = useState<string>()
@@ -160,14 +146,14 @@ export function HomePage()  {
       )
     }
       return ( // -------------------- THIS IS WHERE THE LESSON IS PICKED AND PASSED FORWARD ------------------
-          <div className={styles.main_screen}>
-            <main className={styles.lesson_list}>
+          <div className={home_page_styles.main_screen}>
+            <main className={home_page_styles.lesson_list}>
               { 
               Object.entries(lessonsDict).map(([id, lesson]) => (
                   <button
                     key={id}
                     onClick={() => setActiveLessonId(Number(id))}
-                    className={styles.lesson_card}
+                    className={home_page_styles.lesson_card}
                   >
                     {lesson[0]}
                   </button>
@@ -184,27 +170,14 @@ export function HomePage()  {
               gap:10,
               padding:10
             }}> 
-              {/* <button className="item"
-                onClick={drop_database}
-              >
-                DROP Database Schema
-              </button> */}
               <button className="item"
                 onClick ={() => {
                   deleteLessonsRender(setReRerenderLessons, setLessonsDict)
-                  // clear_database(),
-                  // retrieve_database_entries(setLessonsDict)
                 }}
               >
                 Clear database tables
               </button>
-              
-              {/* <div/>
-              <button className="item"
-                onClick={init_database}
-              >
-                Init Database
-              </button> */}
+
               <button
                 onClick={() => {
                   console.log("New Lesson Button")
@@ -218,8 +191,6 @@ export function HomePage()  {
               <button
                 onClick={() => {
                   console.log("Restore Archived Lessons")
-                   // TODO: make it so that when the server responds with a complete status, it updates the reRenderLessons field to stoop this race condition
-                  //  ------------------------ ------------------------ ------------------------ ------------------------ ------------------------
                   archiveFunctionsRender(setReRerenderLessons)
                   populate_lessons_from_archive()
                 }}
@@ -234,7 +205,10 @@ export function HomePage()  {
 
 export default function Root() {
   return (
-    <div>
+    <div style = {{
+      alignItems: 'center',
+      // flexDirection: 'column'
+    }}>
       <NavBar/>
       <HomePage/>
     </div>
