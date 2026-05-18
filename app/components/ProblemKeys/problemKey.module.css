@@ -3,9 +3,50 @@
     width: 80%;
     height: 100%;
     text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
     padding:24px;
     background-color: lightgray;
     font-size: xx-large;
     font-weight: bolder;
     color: grey
+}
+.problemKeyCard {
+    background-color: azure;
+    font-weight: bold;
+    border-width: 1px;
+    display: flex;
+    flex-direction: row;
+    padding-left: 10%;
+    padding-right: 10%;
+    width: 50%;
+    /* width: fit-content; */
+}
+.problemKeyCharacter{
+    font-weight: bold;
+    color: orange;
+}
+.accuracy_text {
+    font-weight: bold;
+    color: red;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+.pageTitle {
+    font-weight: bolder;
+    font-size: x-large;
+}
+.problemKeyFullPage {
+    text-align: center;
+    align-items: center;
+    background-color: azure;
+    /* display: flex; */
+    /* flex-direction: column; */
+}
+.titleRow {
+    display: flex;
+    flex-direction: row;
+    padding-left: 10%;
+    padding-right: 10%;
 }

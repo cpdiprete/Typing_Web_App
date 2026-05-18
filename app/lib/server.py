@@ -116,6 +116,15 @@ def populate_lessons_from_archive():
     return jsonify({
         "status": "ok"
     })
+@app.route('/get_total_wpm_and_accuracy', methods= ['GET'])
+def get_total_wpm_and_accuracy():
+    wpm, accuracy = db.get_account_aggregate_wpm_and_accuracy()
+    return jsonify ({
+        "wpm": wpm,
+        "accuracy": accuracy,
+        "status": "ok"
+    })
+    
         
 # if __name__ == "__main__":
 #     app.run(port=5000)

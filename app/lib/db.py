@@ -8,7 +8,7 @@ def wpm_calculator(correct, incorrect, millis):
         return wpm
     else:
         wpm = wpm / mins
-    return wpm
+    return round(wpm, 2)
 def init_db():
     create_lessons_table = """CREATE TABLE IF NOT EXISTS Lessons (
             id INTEGER PRIMARY KEY, 
@@ -280,7 +280,7 @@ def get_total_accuracy(card_id):
     
     if (right_count == 0):
         return 0
-    accuracy = round((right_count - wrong_count) / right_count, 2)
+    accuracy = round((right_count / (right_count + wrong_count)), 2)
     
     print("Wrong count fetched: " + str(wrong_count))
     print("Accuracy " + str(accuracy))
@@ -301,6 +301,34 @@ def get_total_wpm(card_id):
         correct, wrong, milliseconds = result
         wpm = wpm_calculator(correct, wrong, milliseconds)
         return wpm
+def get_account_aggregate_wpm_and_accuracy():
+    # for all lessons we have in the table, add up the correct chars and the total wrong   characters to get overall wpm and accuracy stats
+    correct_aggregate = """
+    SELECT SUM(total_correct_chars)
+    FROM Lessons
+    """
+    wrong_aggregate  = """
+    SELECT SUM(total_wrong_chars)
+    FROM Lessons
+    """
+    time_aggregate = """
+    SELECT SUM(milliseconds)
+    FROM Lessons
+    """
+    with sqlite3.connect("typing.db") as typing_db:
+        cursor = typing_db.cursor()
+        cursor.execute(correct_aggregate)
+        total_correct = cursor.fetchone()[0]
+        cursor.execute(wrong_aggregate)
+        total_wrong = cursor.fetchone()[0]
+        cursor.execute(time_aggregate)
+        total_millis = cursor.fetchone()[0]
+        if (total_correct == 0): 
+            total_accuracy = 0
+        else:
+            total_accuracy = round(100 * (total_correct / (total_correct + total_wrong)), 2)
+        total_wpm = wpm_calculator(total_correct, total_wrong, total_millis)
+        return total_wpm, total_accuracy
 def update_problem_keys(pkDict):
     init_db()
     print(f"[DEBUG TRACE] lib/db.update problem_keys(). Passed in problem key dictionary: {pkDict}")
@@ -422,14 +450,16 @@ def testPKDict():
     
 if __name__ == "__main__":
     # print("hello")
-    init_db()
-    clear_db()
+    # init_db()
+    # clear_db()
     # testPKDict()
     # print(view_problem_keys())
     # print(get_top_X_problem_keys(5))
     # store_lessons_in_archive()
-    get_archive_entries()
+    # get_archive_entries()
 
+    wpm, accuracy = get_account_aggregate_wpm_and_accuracy()
+    print(f"total wpm: {wpm}, accuracy: {accuracy}")
     
     # test_wpm_plot()
     

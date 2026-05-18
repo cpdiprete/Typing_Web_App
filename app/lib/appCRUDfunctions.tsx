@@ -96,3 +96,12 @@ export async function populate_lessons_from_archive() {
     }
 
 }
+export async function get_account_total_wpm_and_accuracy() {
+    const endpoint = 'http://localhost:5000/get_total_wpm_and_accuracy'
+    let resp = await fetch(endpoint, {method: "GET", })
+    let data = await resp.json()
+    if (data.status !== "ok") {
+        console.log("Failed to retrieve all-time wpm and accuracy stats")
+    }
+    return [Number(data.wpm), Number(data.accuracy)]
+}

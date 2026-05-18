@@ -12,11 +12,23 @@ export async function blahh(setter) {
 }
 export function ProblemKeyContainer({problemKey}) {
     return ( 
+        // new flexbox with row stacking instead of column stacking
+    <div className={styles.problemKeyFullPage}>
+        <h1 className={styles.pageTitle}>PROBLEM KEYS</h1>
         <div className={styles.problemKeyContainer}>
+            <div className={styles.titleRow}>
+                <h1 className={styles.problemKeyCharacter}>char</h1> 
+                <h1 className={styles.accuracy_text}>accuracy</h1>
+            </div> 
+            
                 {problemKey?.map(([character, accuracy], index) => (
-                <div key={index}>char: {character} | accuracy: {accuracy}% </div>
+                <div key={index} className={styles.problemKeyCard}>
+                    <h1 className={styles.problemKeyCharacter}> {index + 1}{")"} {character} </h1> 
+                    <h1 className={styles.accuracy_text}> {accuracy}% </h1>
+                    </div>
             ))}
         </div>
+    </div>
     )
 }
 export default function ProblemKeyPage() {

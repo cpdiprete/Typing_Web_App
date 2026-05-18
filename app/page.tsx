@@ -9,13 +9,8 @@ import textarea from 'react'
 import { BrowserRouter, Route, Router, Routes, useNavigate } from 'react-router-dom'
 import ProblemKeyPage from "./components/ProblemKeys/page";
 import Link from 'next/link';
-import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, getTopXProblemKeys, populate_lessons_from_archive } from "./lib/appCRUDfunctions";
+import { clear_database, createLesson, drop_database, init_database, retrieve_database_entries, getTopXProblemKeys, populate_lessons_from_archive, get_account_total_wpm_and_accuracy } from "./lib/appCRUDfunctions";
 
-const lesson1text = "Lorem Ipsum only five centuries"
-const lesson2text = "Calvins Lesson 2 text"
-const lesson3text = "Lorem Ipsum has been the industry's"
-const lesson4text = "standard dummy text ever since the 1500s"
-const lesson5text = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
 type LessonsDict = {
   [key: number]: [title: string, text: string]
 }
@@ -38,6 +33,11 @@ export async function deleteLessonsRender(updater, setLessonsDict) {
 export async function archiveFunctionsRender(updater) {
   let result = await populate_lessons_from_archive()
   updater(prev => prev + 1)
+}
+export async function display_wpm_and_accuracy(wpm_updater, accuracy_updater) {
+  let [wpm, accuracy] = await get_account_total_wpm_and_accuracy() 
+  wpm_updater(wpm)
+  accuracy_updater(accuracy)
 }
 export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, textUpdater, popupUpdater}) {
   /*
@@ -75,7 +75,7 @@ export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, te
           <button
           className={home_page_styles.create_lesson_button}
           onClick={() => {
-            console.log("Submit button")
+            // console.log("Submit button")
             console.log("title: ", inputTitle)
             console.log("text: ", inputText)
             createLesson(inputTitle, inputText, popupUpdater)
@@ -96,9 +96,12 @@ export function HomePage()  {
   const [inputTitle, setInputTitle] = useState<string>("")
   const [inputText, setInputText] = useState<string>("")
   const [reRenderLessons, setReRerenderLessons] = useState<number>(0);
+  const [accountTotalWpm, setAccountTotalWpm] = useState<number>(0);
+  const [accountTotalAccuracy, setAccountTotalAccuracy] = useState<number>(0);
 
   useEffect(() => {
     retrieve_database_entries(setLessonsDict)
+    display_wpm_and_accuracy(setAccountTotalWpm, setAccountTotalAccuracy)
   }, [newLessonPopup, reRenderLessons])
   useEffect(() => {
     setNewLessonPopup(false)
@@ -108,11 +111,7 @@ export function HomePage()  {
     if (lessonsDict) {
       // const dictEntry = lessonsDict.find()
       // entries_dict[id] = (title, correct, wrong, text)
-      console.log("WANT THE DATA FROM THIS ENTRY!!!!!!!!!!!!!!!!!!!!!")
-      console.log(lessonsDict[activeLessonId])
       const [title, correct_count, wrong_count, text] = lessonsDict[activeLessonId]
-      console.log("Title and text I am about to pass onto the card class")
-      console.log("Title | ", title, "... Text | ", text)
       return (
         <Card
           title={title}
@@ -147,6 +146,11 @@ export function HomePage()  {
     }
       return ( // -------------------- THIS IS WHERE THE LESSON IS PICKED AND PASSED FORWARD ------------------
           <div className={home_page_styles.main_screen}>
+            <div>
+              All-time Stats
+              <h1>WPM: {accountTotalWpm}</h1>
+              <h1>Accuracy: {accountTotalAccuracy}</h1>
+            </div>
             <main className={home_page_styles.lesson_list}>
               { 
               Object.entries(lessonsDict).map(([id, lesson]) => (
@@ -180,10 +184,8 @@ export function HomePage()  {
 
               <button
                 onClick={() => {
-                  console.log("New Lesson Button")
                   setNewLessonPopup(true)
                   let resp = retrieve_database_entries(setLessonsDict)
-                  console.log(resp)
                 }}
               >
                 New Lesson +
