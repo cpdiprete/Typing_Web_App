@@ -1,6 +1,9 @@
 import sqlite3
+import datetime
 
 def wpm_calculator(correct, incorrect, millis):
+    if correct is None or millis is None:
+        return 0
     wpm = (correct + incorrect) / 5
     seconds = millis / 1000
     mins = seconds / 60
@@ -124,6 +127,7 @@ def get_archive_entries():
         print(rows)
 
 def populate_lessons_with_archive():
+    init_db()
     retrieve = """
     SELECT * FROM archived
     """
@@ -301,7 +305,7 @@ def get_total_wpm(card_id):
         correct, wrong, milliseconds = result
         wpm = wpm_calculator(correct, wrong, milliseconds)
         return wpm
-def get_account_aggregate_wpm_and_accuracy():
+def get_account_aggregate_wpm_accuracy_and_millis():
     # for all lessons we have in the table, add up the correct chars and the total wrong   characters to get overall wpm and accuracy stats
     correct_aggregate = """
     SELECT SUM(total_correct_chars)
@@ -323,12 +327,19 @@ def get_account_aggregate_wpm_and_accuracy():
         total_wrong = cursor.fetchone()[0]
         cursor.execute(time_aggregate)
         total_millis = cursor.fetchone()[0]
-        if (total_correct == 0): 
+        if (total_correct == 0 or total_correct is None): 
             total_accuracy = 0
         else:
             total_accuracy = round(100 * (total_correct / (total_correct + total_wrong)), 2)
         total_wpm = wpm_calculator(total_correct, total_wrong, total_millis)
-        return total_wpm, total_accuracy
+        total_typing_seconds = round(total_millis / 1000, 2)
+        # Break it down into minutes and remaining seconds
+        minutes, seconds = divmod(total_typing_seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+
+        # Format beautifully. :g ensures seconds don't have trailing zeros
+        formatted_typing_string = f"{int(hours)}:{int(minutes):02d}:{seconds:05.2f}".rstrip('0').rstrip('.')
+        return total_wpm, total_accuracy, formatted_typing_string
 def update_problem_keys(pkDict):
     init_db()
     print(f"[DEBUG TRACE] lib/db.update problem_keys(). Passed in problem key dictionary: {pkDict}")
@@ -449,7 +460,7 @@ def testPKDict():
     update_problem_keys(newTestDict)
     
 if __name__ == "__main__":
-    # print("hello")
+    print("hello")
     # init_db()
     # clear_db()
     # testPKDict()
@@ -458,8 +469,8 @@ if __name__ == "__main__":
     # store_lessons_in_archive()
     # get_archive_entries()
 
-    wpm, accuracy = get_account_aggregate_wpm_and_accuracy()
-    print(f"total wpm: {wpm}, accuracy: {accuracy}")
+    # wpm, accuracy = get_account_aggregate_wpm_and_accuracy()
+    # print(f"total wpm: {wpm}, accuracy: {accuracy}")
     
     # test_wpm_plot()
     

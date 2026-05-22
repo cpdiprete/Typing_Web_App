@@ -118,13 +118,13 @@ def populate_lessons_from_archive():
     })
 @app.route('/get_total_wpm_and_accuracy', methods= ['GET'])
 def get_total_wpm_and_accuracy():
-    wpm, accuracy = db.get_account_aggregate_wpm_and_accuracy()
+    wpm, accuracy, formatted_seconds_string = db.get_account_aggregate_wpm_accuracy_and_millis()
     return jsonify ({
         "wpm": wpm,
         "accuracy": accuracy,
+        "typing_time": formatted_seconds_string,
         "status": "ok"
     })
-    
         
 # if __name__ == "__main__":
 #     app.run(port=5000)

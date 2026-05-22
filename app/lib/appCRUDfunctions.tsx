@@ -103,5 +103,5 @@ export async function get_account_total_wpm_and_accuracy() {
     if (data.status !== "ok") {
         console.log("Failed to retrieve all-time wpm and accuracy stats")
     }
-    return [Number(data.wpm), Number(data.accuracy)]
+    return [Number(data.wpm), Number(data.accuracy), data.typing_time]
 }
