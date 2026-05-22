@@ -1,25 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
 import { useState, useEffect } from 'react'
+import { get_wpm_and_accuracy_plot } from '../lib/appCRUDfunctions';
 
-export async function get_wpm_and_accuracy_plot(id : number, wpmUpdater) {
-    const endpoint = `http://127.0.0.1:5000/get_wpm_and_accuracy_plot/${id}`
-    const response = fetch(endpoint).then((resp) => {
-        if (!resp.ok) {
-            throw new Error(`HTTP error in wpmplots.get_wpm_and_accuracy_plot()`)
-        }
-        return resp.json()
-    }
-    ).then((data) => {
-        let i = 0
-        let wpmsDict = []
-        while (i < data.wpms.length) {
-            const newEntry = {index: i, wpm: data.wpms[i], accuracy: data.accuracies[i]}
-            wpmsDict = [...wpmsDict, newEntry]
-            i += 1
-        }
-        wpmUpdater(wpmsDict)
-    })
-}
 // 1. Add this custom Tooltip component above your main component
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -41,22 +23,11 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-export function Wpmchart(id) {
-    const [showPlot, setShowPlot] = useState(false)
-    const [wpm_and_accuracy_plot, setWpm_and_accuracy_plot] = useState()
-    // const [accPlot, setAccPlot] = useState()
-    useEffect(() => {
-        setShowPlot(true)
-    }, [wpm_and_accuracy_plot])
-
-    useEffect(() => {
-        get_wpm_and_accuracy_plot(id.id, setWpm_and_accuracy_plot) 
-    }, [])
+export function Wpmchart({ data }) {
     return (
-    showPlot ?
-        
-        <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={wpm_and_accuracy_plot} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+        data && data.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
                 <XAxis dataKey="index" stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
@@ -77,12 +48,12 @@ export function Wpmchart(id) {
                     dot={{ r: 4, fill: '#2e86de' }} 
                     // activeDot={{ r: 6, strokeWidth: 0 }} 
                 />
-            </LineChart>
-        </ResponsiveContainer>
-    :
-    <div>
-        No Plot data
-    </div>
-
-    )
+                </LineChart>
+            </ResponsiveContainer>
+        ) : (
+            <div>
+                Loading Plot data...
+            </div>
+        )
+    );
 }

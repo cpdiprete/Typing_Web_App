@@ -10,10 +10,6 @@ app = Flask(__name__)
 CORS(app)
 # CORS(app, resources={r"/*": {"origins": "*"}})
 
-@app.route('/', methods=['GET'])
-def hello():
-    return jsonify({"message": "Hello from the backend!"})
-
 @app.route('/dropdb', methods=['GET'])
 def drop_database():
     print("Dropping the database")
@@ -25,23 +21,30 @@ def clear_database():
     print("Clearing the database's")
     db.clear_db()
     return jsonify({"message": "Hello from the backend!"})
-
-
 @app.route('/init_db')
 def init_db():
     db.init_db()
     return jsonify({"message": "Hello from the backend!"})
 
-@app.route('/get_accuracy/<int:card_id>')
-def get_accuracy(card_id):
-    blah = db.get_total_accuracy(card_id)
+@app.route('/get_accuracy', methods=['POST'])
+def get_accuracy():
+    if request.method != 'POST':
+        return 405
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+    data = request.get_json()
+    card_id = data.get('card_id')
+    db_accuracy = db.get_total_accuracy(card_id)
+    print(f"returned db accuracy: {db_accuracy}")
     # return blah
     return jsonify({
-    "status": "ok",
-    "accuracy": blah
+        "status": "ok",
+        "accuracy": db_accuracy
     })
-@app.route('/get_wpm/<int:card_id>')
-def get_wpm(card_id):
+@app.route('/get_wpm', methods=['POST'])
+def get_wpm():
+    data = request.get_json()
+    card_id = data.get('card_id')
     blah = db.get_total_wpm(card_id)
     # print(f"Server tried to get card wpm for id={card_id}.. output={blah}")
     # return blah
@@ -49,10 +52,13 @@ def get_wpm(card_id):
         "status": "ok",
         "wpm": blah
     })
-@app.route('/total_stats/<int:card_id>/<int:correct>/<int:incorrect>/<int:seconds>', methods=['POST'])
-def update_total_stats(card_id, correct, incorrect, seconds):
-    # print("CAlled function to update total stats")
-    # print(f"card_id={card_id} | correct_count={correct} | incorrect={incorrect}")
+@app.route('/update_total_stats', methods=['POST'])
+def update_total_stats():
+    data = request.get_json()
+    card_id = data.get('card_id')
+    correct = data.get('correct')
+    incorrect = data.get('incorrect')
+    seconds = data.get('seconds')
     db.update_chars_and_seconds(card_id, correct, incorrect, seconds)
     return jsonify({
         "status": "ok"
@@ -65,24 +71,33 @@ def get_entries_dict():
         "status": "ok",
         "entries_dict": entries_dict
     })
-@app.route('/add_lesson/<string:title>/<string:text>', methods=['POST'])
-def add_lesson(title, text):
+@app.route('/add_lesson', methods=['POST'])
+def add_lesson():
+    if request.method != 'POST':
+        return 405
+    data = request.get_json()
+    title = data.get('title')
+    text = data.get('text')
     # print(f"Add lesson was called with title:{title} | text={text}")
     db.add_lesson(title, text) ## need to 
     return jsonify({
         "status": "ok"
     })
     
-@app.route('/get_wpm_and_accuracy_plot/<int:cardId>')
-def get_wpm_and_accuracy_plot(cardId):
+@app.route('/get_wpm_and_accuracy_plot', methods=['POST'])
+def get_wpm_and_accuracy_plot():
+    # <int:cardId>
+    data = request.get_json()
+    cardId = data.get('cardId')
+    print("retrieved cardID and shit from crud to server...")
     wpm_accuracies = db.get_wpm_plot(cardId) ## format is [(wpm, accuracy), (wpm, accuracy), etc.]
     wpms = []
     accuracies = []
     for entry in wpm_accuracies:
         wpms.append(round(entry[0], 0))
         accuracies.append(round(entry[1], 2))
-    print(f"wpms: {wpms}")
-    print(f"accuracies: {accuracies}")
+    # print(f"wpms: {wpms}")
+    # print(f"accuracies: {accuracies}")
     return jsonify({
         "status": "ok",
         "wpms" : wpms,
@@ -91,9 +106,9 @@ def get_wpm_and_accuracy_plot(cardId):
 @app.route('/update_key_accuracy_dict', methods=['POST'])
 def update_key_accuracy_dict():
     data = request.get_json()
-    print(data)
-    print("--------------------------------\n\n")
-    print(type(data)) ## Dict type, ready to pass into DB functions
+    # print(data)
+    # print("--------------------------------\n\n")
+    # print(type(data)) ## Dict type, ready to pass into DB functions
     db.update_problem_keys(data)
     # print(type(json.dumps(data)))
     return jsonify({"status": "ok"})
@@ -103,8 +118,10 @@ def get_key_accuracy_dict():
     print(results)
     # return jsonify({"status": "ok"}, results)
     return jsonify(results)
-@app.route('/getTopXProblemKeys/<int:numberOfProblemKeys>', methods = ['GET'])
-def getTopXProblemKeys(numberOfProblemKeys: int):
+@app.route('/getTopXProblemKeys', methods = ['POST'])
+def getTopXProblemKeys():
+    data = request.get_json()
+    numberOfProblemKeys = data.get("number_of_problem_keys")
     topProblemKeys = db.get_top_X_problem_keys(numberOfProblemKeys)
     return jsonify({
         "status": "ok",

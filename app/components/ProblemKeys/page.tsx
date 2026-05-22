@@ -39,13 +39,6 @@ export default function ProblemKeyPage() {
     return (
     <div>
         <NavBar/>
-        <button className="item"
-            onClick={() => {
-                blahh(setProblemKeys)
-            }}
-        >
-        Show problem Keys
-        </button>
         <div>
             <ProblemKeyContainer
                 problemKey={problemKeys}

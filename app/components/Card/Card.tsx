@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { color } from "chart.js/helpers";
 import { stringify } from "querystring";
 import { data } from "react-router-dom";
+import { getTotalAccuracy, updateTotalStats, getTotalWpm, get_wpm_and_accuracy_plot } from "../../lib/appCRUDfunctions";
 // import get_wpm_and_accuracy_plot from "./wpmplots"
 let finished = false
 type CardProps = {
@@ -39,17 +40,6 @@ type keyStats = {
 }
 type CorrectKeyDictType = Record<string, keyStats>
 
-export async function updateTotalStats(card_id:number, correct_chars: number, incorrect_chars: number, seconds:number) {
-    const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${seconds}`;
-    // const endpoint = `http://127.0.0.1:5000/total_stats/${card_id}/${correct_chars}/${incorrect_chars}/${100}`;
-    const response = await fetch(endpoint, {
-        method: "POST",
-    })
-    if (!response.ok) {
-        throw new Error("Request failed");
-    }
-    console.log("Updated total accuracy")
-}
 export async function updateAccuracyKeyDict(keyDict: CorrectKeyDictType ) {
     try{
         // console.log(JSON.stringify(keyDict))
@@ -71,33 +61,6 @@ export async function updateAccuracyKeyDict(keyDict: CorrectKeyDictType ) {
         // Handle error
     }
 
-}
-
-export async function getTotalAccuracy(card_id) {
-    console.log("trying to check total accuracy")
-    const endpoint = `http://127.0.0.1:5000/get_accuracy/${card_id}`;
-    console.log("fetching from endpoint", endpoint)
-    const response = await fetch(endpoint)
-    if (!response.ok) {
-        console.log("Issue, response = ",  response)
-        throw new Error(`Http error!!!, `);
-    }
-    const data = await response.json();
-    console.log(data.accuracy)
-    return data.accuracy;
-    // let accuracy_percentage = (100 * (state.numRight - state.numWrong) / state.numRight).toFixed(1)
-}
-
-export async function getTotalWpm(card_id) {
-    const endpoint = `http://127.0.0.1:5000/get_wpm/${card_id}`;
-    const response = await fetch(endpoint)
-    if (!response.ok) {
-        console.log("Issue, response = ",  response)
-        throw new Error(`Http error!!!, `);
-    }
-    const data = await response.json();
-    console.log(data)
-    return data.wpm.toFixed(1)
 }
 
 export function Individual_Character({character, correct, seen}: CharProps) {
@@ -218,6 +181,7 @@ export function Card({text, title, id, backToMain}: CardProps) {
     const [allTimeWpm, setAllTimeWpm] = useState<number>(9999999)
     const [allTimeAccuracy, setAllTimeAccuracy] = useState<number>(9999999)
     const [keyCorrectDict, setKeyCorrectDict] = useState<CorrectKeyDictType>({["a"]: {correct: 0, incorrect: 0}});
+    const [plotData, setPlotData] = useState([]);
 
 
     const [soundCorrect] = useSound('/sounds/keyboard.wav', {
@@ -304,7 +268,8 @@ export function Card({text, title, id, backToMain}: CardProps) {
             getTotalWpm(id).then(wppm=> setAllTimeWpm(wppm)).catch((err)=> console.error(err))
             getTotalAccuracy(id).then(acc=> setAllTimeAccuracy(acc)).catch((err)=> console.error(err))
             updateAccuracyKeyDict(keyCorrectDict)
-            // get_wpm_and_accuracy_plot(id)
+            get_wpm_and_accuracy_plot(id, setPlotData)
+            
         })
 
     }, [state.status, id])
@@ -342,6 +307,7 @@ export function Card({text, title, id, backToMain}: CardProps) {
                     {/* <p>Accuracy: {allTimeAccuracy} %</p> */}
                     <Wpmchart
                         id={id}
+                        data={plotData}
                     >
                     </Wpmchart>
                 </div>

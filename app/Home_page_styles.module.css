@@ -80,7 +80,14 @@
     gap: 12px;
     background-color:lightcyan;
     color: grey
-
+}
+.lesson_card:hover{
+    gap: 12px;
+    background-color:grey;
+    color: orange
+}
+.lesson_card:active {
+  transform: scale(1.10);
 }
 
 /* Styles the text input boxes */
@@ -108,4 +115,49 @@
 }
 .textInput {
   min-height: 120px;
+}
+.allTimeStatsFullContainer {
+  /* display: flex;
+  flex-direction: column;
+  align-items: center; */
+
+}
+.allTimeStatsContainer {
+  display: flex;
+  flex-direction: row;
+  font-weight: bold;
+  background-color: lightblue;
+  align-items: center;
+  justify-content: center;
+  font-size: large
+}
+.allTimeStatsTitle {
+  /* padding-left: 11.6%;
+  padding-right: 11.6%; */
+  /* margin-left: 10% ; */
+  font-weight: bold;
+  background-color: lightblue;
+  font-size: large;
+  align-self: center;
+}
+.wpmText {
+  margin-left: 1%;
+  font-weight: bold;
+}
+.navBar {
+  display: flex;
+  flex-direction: row;
+  background-color: orange;
+  gap: 20px;
+}
+.navBarText {
+  color: black;
+  font-weight: bold;
+}
+.navBarText:hover{
+  color: white;
+}
+.navBarText:active{
+  transform: scale(1.10); /* Makes the button visually 'press' into the screen */
+  color: white;
 }

@@ -16,29 +16,53 @@ type LessonsDict = {
 }
 export function NavBar() {
   return (
-    <div>
-      <Link href={"/"}> Home Page </Link> |
-      <Link href={"/components/ProblemKeys"}> Problem Keys </Link>
-
+    <div className={home_page_styles.navBar}>
+      <Link className={home_page_styles.navBarText} href={"/"}> Home Page </Link>
+      <Link className={home_page_styles.navBarText} href={"/components/ProblemKeys"}> Problem Keys </Link>
     </div>
   );
 }
+export function AllTimeStats() {
+  const [accountTotalWpm, setAccountTotalWpm] = useState<number>(0);
+  const [accountTotalAccuracy, setAccountTotalAccuracy] = useState<number>(0);
+  const [totalTypingTime, setTotalTypingTime] = useState<string>('unknown')
+
+  useEffect(() => {
+    display_wpm_and_accuracy(setAccountTotalWpm, setAccountTotalAccuracy, setTotalTypingTime)
+  }, [])
+  return (
+    <div className={home_page_styles.allTimeStatsFullContainer}>
+      <h1 className={home_page_styles.allTimeStatsTitle}>All Time Statistics </h1>
+    <div className={home_page_styles.allTimeStatsContainer}>
+      <h1 className={home_page_styles.wpmText}>WPM: {accountTotalWpm}</h1>
+      <h1 className={home_page_styles.wpmText}>Accuracy: {accountTotalAccuracy}%</h1>
+      <h1 className={home_page_styles.wpmText}>Total Time: {totalTypingTime}</h1>
+      {/* <h1>Milliseconds: {milliseconds}</h1> */}
+    </div>
+    </div>
+
+  )
+}
 export async function deleteLessonsRender(updater, setLessonsDict) {
-  let result = await clear_database()
+  let result = await clear_database(updater)
   retrieve_database_entries(setLessonsDict)
 
-  updater(prev => prev + 1)
+  // updater(prev => prev + 1)
 
 }
-export async function archiveFunctionsRender(updater) {
-  let result = await populate_lessons_from_archive()
-  updater(prev => prev + 1)
+export async function archiveFunctionsRender(updater, setLessonsDict) {
+  let result = await populate_lessons_from_archive(updater)
+  retrieve_database_entries(setLessonsDict)
+  // updater(prev => prev + 1)
 }
-export async function display_wpm_and_accuracy(wpm_updater, accuracy_updater) {
-  let [wpm, accuracy] = await get_account_total_wpm_and_accuracy() 
+export async function display_wpm_and_accuracy(wpm_updater, accuracy_updater, typing_time_updater) {
+  let [wpm, accuracy, total_typing_time] = await get_account_total_wpm_and_accuracy() 
   wpm_updater(wpm)
   accuracy_updater(accuracy)
+  typing_time_updater(total_typing_time)
+
 }
+
 export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, textUpdater, popupUpdater}) {
   /*
     Renders the popup for a new lesson being created
@@ -87,7 +111,6 @@ export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, te
       </div>
     )
 }
-
 export function HomePage()  {
   const [serverText, setServerText] = useState<string>()
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
@@ -95,13 +118,10 @@ export function HomePage()  {
   const [lessonsDict, setLessonsDict] = useState<LessonsDict>()
   const [inputTitle, setInputTitle] = useState<string>("")
   const [inputText, setInputText] = useState<string>("")
-  const [reRenderLessons, setReRerenderLessons] = useState<number>(0);
-  const [accountTotalWpm, setAccountTotalWpm] = useState<number>(0);
-  const [accountTotalAccuracy, setAccountTotalAccuracy] = useState<number>(0);
+  const [reRenderLessons, setReRerenderLessons] = useState<void>();
 
   useEffect(() => {
     retrieve_database_entries(setLessonsDict)
-    display_wpm_and_accuracy(setAccountTotalWpm, setAccountTotalAccuracy)
   }, [newLessonPopup, reRenderLessons])
   useEffect(() => {
     setNewLessonPopup(false)
@@ -118,6 +138,7 @@ export function HomePage()  {
           text={text}
           id={activeLessonId}
           backToMain={setActiveLessonId}
+          // backToMain={handleBackToMain} // end goal is to use this to update the activeLessonId (like whats already happening), and to re-render the global typing stats as well
         >
         </Card>
       )
@@ -146,11 +167,11 @@ export function HomePage()  {
     }
       return ( // -------------------- THIS IS WHERE THE LESSON IS PICKED AND PASSED FORWARD ------------------
           <div className={home_page_styles.main_screen}>
-            <div>
+            {/* <div>
               All-time Stats
               <h1>WPM: {accountTotalWpm}</h1>
               <h1>Accuracy: {accountTotalAccuracy}</h1>
-            </div>
+            </div> */}
             <main className={home_page_styles.lesson_list}>
               { 
               Object.entries(lessonsDict).map(([id, lesson]) => (
@@ -193,8 +214,8 @@ export function HomePage()  {
               <button
                 onClick={() => {
                   console.log("Restore Archived Lessons")
-                  archiveFunctionsRender(setReRerenderLessons)
-                  populate_lessons_from_archive()
+                  archiveFunctionsRender(setReRerenderLessons, setLessonsDict)
+                  // populate_lessons_from_archive()
                 }}
               >
                 Restore Archived Lessons
@@ -212,6 +233,7 @@ export default function Root() {
       // flexDirection: 'column'
     }}>
       <NavBar/>
+      <AllTimeStats/>
       <HomePage/>
     </div>
 

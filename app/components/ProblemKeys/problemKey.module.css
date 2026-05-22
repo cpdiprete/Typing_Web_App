@@ -10,7 +10,8 @@
     background-color: lightgray;
     font-size: xx-large;
     font-weight: bolder;
-    color: grey
+    color: grey;
+    gap: 5px;
 }
 .problemKeyCard {
     background-color: azure;

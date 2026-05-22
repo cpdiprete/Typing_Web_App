@@ -24,7 +24,7 @@ def init_db():
     );"""
     create_wpm_table = """
         CREATE TABLE IF NOT EXISTS wpms_table
-        (id INTEGER PRIMARY_KEY,
+        (id INTEGER PRIMARY KEY,
         lessonid INTEGER NOT NULL,
         wpm REAL NOT NULL,
         accuracy REAL NOT NULL
@@ -75,7 +75,7 @@ def get_wpm_plot(id):
         cursor = typing_db.cursor()
         cursor.execute(query, (id,))
         values = cursor.fetchall()
-        print(f"db.py wpm_plot() values: {values}")
+        # print(f"db.py wpm_plot() values: {values}")
         return values
         
 def drop_db():
@@ -105,7 +105,7 @@ def store_lessons_in_archive():
         cursor = typing_db.cursor()
         cursor.execute(retrieval)
         lessonsList = cursor.fetchall()
-        print(lessonsList)
+        # print(lessonsList)
     if len(lessonsList) == 0:
         return
     with sqlite3.connect("archived.db") as archive:
@@ -124,7 +124,7 @@ def get_archive_entries():
         cursor = archive.cursor()
         cursor.execute(query)
         rows = cursor.fetchall()
-        print(rows)
+        # print(rows)
 
 def populate_lessons_with_archive():
     init_db()
@@ -176,7 +176,7 @@ def get_next_valid_card_id():
         if (fetched_row is None):
             return 0
         (row_id,) = fetched_row ## it comes as a tuple containing a single integer
-        print(f"one output: {row_id}")
+        # print(f"one output: {row_id}")
         next_id = row_id + 1
         return next_id
     
@@ -193,7 +193,7 @@ def get_next_valid_wpm_table_id(card_id):
         cursor.execute(query, (card_id,))
         next_valid_id = cursor.fetchone()
         if (next_valid_id is None) or (next_valid_id[0] is None):
-            print("prev ids are NONE")
+            # print("prev ids are NONE")
             return 0
         else:
             return (next_valid_id[0] + 1)
@@ -286,8 +286,8 @@ def get_total_accuracy(card_id):
         return 0
     accuracy = round((right_count / (right_count + wrong_count)), 2)
     
-    print("Wrong count fetched: " + str(wrong_count))
-    print("Accuracy " + str(accuracy))
+    # print("Wrong count fetched: " + str(wrong_count))
+    # print("Accuracy " + str(accuracy))
     return accuracy
 
 def get_total_wpm(card_id):
@@ -342,13 +342,13 @@ def get_account_aggregate_wpm_accuracy_and_millis():
         return total_wpm, total_accuracy, formatted_typing_string
 def update_problem_keys(pkDict):
     init_db()
-    print(f"[DEBUG TRACE] lib/db.update problem_keys(). Passed in problem key dictionary: {pkDict}")
+    # print(f"[DEBUG TRACE] lib/db.update problem_keys(). Passed in problem key dictionary: {pkDict}")
     formatted_list = []
     for char, nestedDict in pkDict.items():
         correct = nestedDict["correct"]
         incorrect = nestedDict["incorrect"]
         formatted_list.append([char, correct, incorrect, correct, incorrect])
-    print(formatted_list)
+    # print(formatted_list)
     
     q2 = """
     INSERT INTO key_table
