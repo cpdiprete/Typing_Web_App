@@ -9,12 +9,15 @@
 .card_text{
     white-space: pre-wrap;
     margin:auto;
+    word-break: keep-all; /* so the words don't wrap to a new line
     /* font-family: monospace; */
     padding: 24px;
     /* color: blue; */
     font-size: large;
     font-weight: bold;
-    color: grey
+    color: grey;
+    letter-spacing: 0.05em; /* Spaces out individual characters */
+    word-spacing: 0.2em;    /* Adds extra width to the spaces between words */
 }
 .finish_display_stats_card{
     /* align-items: center;

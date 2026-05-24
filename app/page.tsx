@@ -22,45 +22,43 @@ export function NavBar() {
     </div>
   );
 }
-export function AllTimeStats() {
+export function AllTimeStats(
+  {reRenderPageUpdater}
+  // {accountTotalWpm, setAccountTotalAccuracy, setTotalTypingTime}
+) {
   const [accountTotalWpm, setAccountTotalWpm] = useState<number>(0);
   const [accountTotalAccuracy, setAccountTotalAccuracy] = useState<number>(0);
   const [totalTypingTime, setTotalTypingTime] = useState<string>('unknown')
+  const [reRenderAllTimeStats, setReRenderAllTimeStats] = useState<void>();
 
   useEffect(() => {
     display_wpm_and_accuracy(setAccountTotalWpm, setAccountTotalAccuracy, setTotalTypingTime)
-  }, [])
+  }, [reRenderAllTimeStats])
   return (
     <div className={home_page_styles.allTimeStatsFullContainer}>
-      <h1 className={home_page_styles.allTimeStatsTitle}>All Time Statistics </h1>
-    <div className={home_page_styles.allTimeStatsContainer}>
-      <h1 className={home_page_styles.wpmText}>WPM: {accountTotalWpm}</h1>
-      <h1 className={home_page_styles.wpmText}>Accuracy: {accountTotalAccuracy}%</h1>
-      <h1 className={home_page_styles.wpmText}>Total Time: {totalTypingTime}</h1>
-      {/* <h1>Milliseconds: {milliseconds}</h1> */}
+        <h1 className={home_page_styles.allTimeStatsTitle}>All Time Statistics </h1>
+      <div className={home_page_styles.allTimeStatsContainer}>
+        <h1 className={home_page_styles.wpmText}>WPM: {accountTotalWpm}</h1>
+        <h1 className={home_page_styles.wpmText}>Accuracy: {accountTotalAccuracy}%</h1>
+        <h1 className={home_page_styles.wpmText}>Total Time: {totalTypingTime}</h1>
+      </div>
     </div>
-    </div>
-
   )
 }
 export async function deleteLessonsRender(updater, setLessonsDict) {
   let result = await clear_database(updater)
   retrieve_database_entries(setLessonsDict)
-
-  // updater(prev => prev + 1)
-
+  // some way to re-render the global stats, how can I call one to trigger the other?
 }
 export async function archiveFunctionsRender(updater, setLessonsDict) {
   let result = await populate_lessons_from_archive(updater)
   retrieve_database_entries(setLessonsDict)
-  // updater(prev => prev + 1)
 }
 export async function display_wpm_and_accuracy(wpm_updater, accuracy_updater, typing_time_updater) {
   let [wpm, accuracy, total_typing_time] = await get_account_total_wpm_and_accuracy() 
   wpm_updater(wpm)
   accuracy_updater(accuracy)
   typing_time_updater(total_typing_time)
-
 }
 
 export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, textUpdater, popupUpdater}) {
@@ -111,11 +109,11 @@ export function NewLessonPopupComponent({inputTitle, inputText, titleUpdater, te
       </div>
     )
 }
-export function HomePage()  {
+export function HomePage({reRenderPageUpdater, lessonsDict, setLessonsDict})  {
   const [serverText, setServerText] = useState<string>()
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   const [newLessonPopup, setNewLessonPopup] = useState<boolean>(false);
-  const [lessonsDict, setLessonsDict] = useState<LessonsDict>()
+  // const [lessonsDict, setLessonsDict] = useState<LessonsDict>()
   const [inputTitle, setInputTitle] = useState<string>("")
   const [inputText, setInputText] = useState<string>("")
   const [reRenderLessons, setReRerenderLessons] = useState<void>();
@@ -167,11 +165,6 @@ export function HomePage()  {
     }
       return ( // -------------------- THIS IS WHERE THE LESSON IS PICKED AND PASSED FORWARD ------------------
           <div className={home_page_styles.main_screen}>
-            {/* <div>
-              All-time Stats
-              <h1>WPM: {accountTotalWpm}</h1>
-              <h1>Accuracy: {accountTotalAccuracy}</h1>
-            </div> */}
             <main className={home_page_styles.lesson_list}>
               { 
               Object.entries(lessonsDict).map(([id, lesson]) => (
@@ -184,16 +177,7 @@ export function HomePage()  {
                   </button>
                 ))}
             </main>
-            <div style={{
-              display:'flex',
-              flexDirection: 'column',
-              fontWeight: 'bold',
-              // width:'50%' ,
-              fontSize:'large',
-              color: 'orange',
-              // background: 'lightgreen',
-              gap:10,
-              padding:10
+            <div className={home_page_styles.dbButtonBox}style={{
             }}> 
               <button className="item"
                 onClick ={() => {
@@ -227,14 +211,24 @@ export function HomePage()  {
 }
 
 export default function Root() {
+  const [reRenderHomePage, setReRenderHomePage] = useState<void>() // NEED TO CALL THIS FROM SUBMODULES TO BOTH RE-RENDER THE ALL TIME STATS, AS WELL AS THE ENTIRE LESSONS PAGE
+  const [lessonDict, setLessonDict] = useState<LessonsDict>()
+  useEffect(() => {
+    retrieve_database_entries(setLessonDict)
+  }, [reRenderHomePage])
+
   return (
     <div style = {{
       alignItems: 'center',
       // flexDirection: 'column'
     }}>
       <NavBar/>
-      <AllTimeStats/>
-      <HomePage/>
+      <AllTimeStats reRenderPageUpdater={setReRenderHomePage}/>
+      <HomePage 
+        reRenderPageUpdater={setReRenderHomePage}
+        lessonsDict={lessonDict}
+        setLessonsDict={setLessonDict}
+      />
     </div>
 
   );

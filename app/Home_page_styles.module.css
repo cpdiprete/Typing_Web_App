@@ -161,3 +161,12 @@
   transform: scale(1.10); /* Makes the button visually 'press' into the screen */
   color: white;
 }
+.dbButtonBox {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  font-size: large;
+  color: orange;
+  gap:10;
+  padding:10
+}

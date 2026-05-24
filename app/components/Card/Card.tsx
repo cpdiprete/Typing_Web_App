@@ -79,11 +79,11 @@ export function Individual_Character({character, correct, seen}: CharProps) {
     }
     if (bg_color !== null) {
         return (
-            <span style={{color: set_color, backgroundColor: bg_color}}> {character}</span>
+            <span style={{color: set_color, backgroundColor: bg_color}}>{character}</span>
         )
     } else {
         return (
-            <span style={{color: set_color}}> {character}</span>
+            <span style={{color: set_color}}>{character}</span>
         )
     }
 }
@@ -316,16 +316,41 @@ export function Card({text, title, id, backToMain}: CardProps) {
         )
     } else {
         return (
-                <div className={styles.card_text}>
-                {text.split("").map((ch, index) => (
-                    <Individual_Character
-                        key={index}
+        <div className={styles.card_text}>
+            {text.split(' ').map((word, wordIndex, wordsArray) => {
+                // Calculate the absolute starting index of this word so state.curChar still maps perfectly
+                const startIndex = wordsArray.slice(0, wordIndex).reduce((acc, w) => acc + w.length + 1, 0);
+
+                return (
+                <span key={wordIndex} style={{ display: "inline-block" }}>
+                    
+                    {/* Map the characters inside the word */}
+                    {word.split('').map((ch, charIndex) => {
+                    const absIndex = startIndex + charIndex;
+                    return (
+                        <Individual_Character
+                        key={absIndex}
                         character={ch}
-                        seen={index < state.curChar}
-                        correct={index in state.correctDict}
+                        seen={absIndex < state.curChar}
+                        correct={absIndex in state.correctDict}
+                        />
+                    );
+                    })}
+
+                    {/* Render the space after the word, unless it's the very last word */}
+                    {wordIndex < wordsArray.length - 1 && (
+                    <Individual_Character
+                        key={startIndex + word.length}
+                        character=" "
+                        seen={startIndex + word.length < state.curChar}
+                        correct={(startIndex + word.length) in state.correctDict}
                     />
-                ))}
-                </div>
+                    )}
+                    
+                </span>
+                );
+            })}
+            </div>
             
         );
     }
